@@ -1,10 +1,10 @@
 import { useState } from 'react';
 import { supabase } from './supabaseClient';
-import { Mail, Lock, Loader2, ArrowRight } from 'lucide-react';
+import { User, Lock, Loader2, ArrowRight } from 'lucide-react';
 
 export default function Auth() {
     const [loading, setLoading] = useState(false);
-    const [email, setEmail] = useState('');
+    const [username, setUsername] = useState('');
     const [password, setPassword] = useState('');
     const [isSignUp, setIsSignUp] = useState(false);
     const [message, setMessage] = useState('');
@@ -16,17 +16,33 @@ export default function Auth() {
         setMessage('');
         setErrorMsg('');
 
+        // Supabase requires an email format, so we append a dummy domain to the username
+        const normalizedUsername = username.trim().toLowerCase();
+        const fakeEmail = `${normalizedUsername}@selectionplanner.com`;
+
         try {
             if (isSignUp) {
-                const { error } = await supabase.auth.signUp({
-                    email,
+                const { data, error } = await supabase.auth.signUp({
+                    email: fakeEmail,
                     password,
                 });
                 if (error) throw error;
-                setMessage('Success! Check your email for a confirmation link (or you might be logged in automatically depending on Supabase settings).');
+
+                // Also insert the username into the completely separate 'profiles' table
+                if (data?.user) {
+                    const { error: profileError } = await supabase
+                        .from('profiles')
+                        .insert([{ id: data.user.id, username: normalizedUsername }]);
+
+                    if (profileError) {
+                        console.error("Could not save username to profile table", profileError);
+                    }
+                }
+
+                setMessage('Account created! You have been logged in automatically.');
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
-                    email,
+                    email: fakeEmail,
                     password,
                 });
                 if (error) throw error;
@@ -51,13 +67,13 @@ export default function Auth() {
 
                 <form onSubmit={handleAuth} className="auth-form">
                     <div className="input-group">
-                        <Mail className="input-icon" size={20} />
+                        <User className="input-icon" size={20} />
                         <input
-                            type="email"
-                            placeholder="Your email address"
-                            value={email}
+                            type="text"
+                            placeholder="Your username"
+                            value={username}
                             required
-                            onChange={(e) => setEmail(e.target.value)}
+                            onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
                     <div className="input-group">
@@ -94,6 +110,8 @@ export default function Auth() {
                             setIsSignUp(!isSignUp);
                             setMessage('');
                             setErrorMsg('');
+                            setUsername('');
+                            setPassword('');
                         }}
                     >
                         {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
