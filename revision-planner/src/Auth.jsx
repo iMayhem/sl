@@ -48,7 +48,11 @@ export default function Auth() {
                 if (error) throw error;
             }
         } catch (error) {
-            setErrorMsg(error.message || 'An error occurred during authentication.');
+            if (error.message.toLowerCase().includes('rate limit')) {
+                setErrorMsg('Supabase Rate Limit Reached! To fix this: Go to your Supabase Dashboard -> Authentication -> Rate Limits, and increase the "Email signups limit" or contact support.');
+            } else {
+                setErrorMsg(error.message || 'An error occurred during authentication.');
+            }
         } finally {
             setLoading(false);
         }
