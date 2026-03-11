@@ -16,9 +16,10 @@ export default function Auth() {
         setMessage('');
         setErrorMsg('');
 
-        // Supabase requires an email format, so we append a dummy domain to the username
+        // Supabase requires an email format to use its built-in password auth.
+        // We append a standard dummy domain to the username.
         const normalizedUsername = username.trim().toLowerCase();
-        const fakeEmail = `${normalizedUsername}@selectionplanner.com`;
+        const fakeEmail = `${normalizedUsername}@example.com`;
 
         try {
             if (isSignUp) {
@@ -49,7 +50,9 @@ export default function Auth() {
             }
         } catch (error) {
             if (error.message.toLowerCase().includes('rate limit')) {
-                setErrorMsg('Supabase Rate Limit Reached! To fix this: Go to your Supabase Dashboard -> Authentication -> Rate Limits, and increase the "Email signups limit" or contact support.');
+                setErrorMsg('Supabase Rate Limit Reached! Turn off "Confirm email" and increase "Email signups limit" in Supabase -> Authentication -> Rate Limits.');
+            } else if (error.message.toLowerCase().includes('invalid')) {
+                setErrorMsg('Supabase rejected the username! Go to Supabase -> Authentication -> Providers -> Email, and make sure "Verify email domain (MX record)" is turned OFF.');
             } else {
                 setErrorMsg(error.message || 'An error occurred during authentication.');
             }
