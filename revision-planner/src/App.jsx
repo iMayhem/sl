@@ -230,6 +230,33 @@ function App() {
     return expanded;
   };
 
+  const chapterFrequencies = useMemo(() => {
+    const freqs = {};
+    scheduleData.forEach(day => {
+      day.tasks.forEach(task => {
+        const expanded = expandTopic(task.topic);
+        const chapters = expanded.split(',').map(s => s.trim()).filter(Boolean);
+        chapters.forEach(c => {
+          freqs[c] = (freqs[c] || 0) + 1;
+        });
+      });
+    });
+    return freqs;
+  }, []);
+
+  const renderTopicWithFrequency = (topicString) => {
+    const chapters = topicString.split(',').map(s => s.trim()).filter(Boolean);
+    return chapters.map((c, idx) => {
+      const freq = chapterFrequencies[c] || 1;
+      return (
+        <span key={idx} style={{ display: 'inline-block', marginRight: '4px' }}>
+          {c} <span style={{ opacity: 0.6, fontSize: '0.85em', fontWeight: 500 }}>({freq}x)</span>
+          {idx < chapters.length - 1 ? ',' : ''}
+        </span>
+      );
+    });
+  };
+
   if (!session) {
     return <Auth />;
   }
@@ -415,7 +442,7 @@ function App() {
                           <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
                             {task.subject}
                           </span>
-                          <span className="task-topic">{expandTopic(task.topic)}</span>
+                          <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic))}</span>
                         </div>
                       </div>
                     );
