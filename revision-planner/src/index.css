@@ -463,20 +463,94 @@ header {
   }
 }
 
+@media (max-width: 1024px) {
+  .app-container {
+    padding: 1.5rem;
+  }
+}
+
 @media (max-width: 768px) {
   .app-container {
     padding: 1rem;
   }
 
   .title-glow {
-    font-size: 2.2rem;
+    font-size: 2.25rem;
+  }
+
+  .subtitle {
+    font-size: 1rem;
+  }
+
+  .progress-container {
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+  }
+
+  .progress-stats {
+    font-size: 1.1rem;
   }
 
   .days-grid {
     grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .auth-container {
+    padding: 1rem;
+    align-items: flex-start;
+    padding-top: 4rem;
   }
 
   .auth-card {
     padding: 2rem;
+    border-radius: 1.25rem;
+  }
+
+  .title-glow[style] {
+    font-size: 2rem !important;
+  }
+
+  .filters {
+    margin-bottom: 1.5rem;
+  }
+
+  .filter-btn {
+    padding: 0.4rem 1rem;
+    font-size: 0.9rem;
+  }
+
+  /* Make checkboxes slightly larger for easier tapping */
+  .checkbox-wrapper {
+    width: 28px;
+    height: 28px;
+  }
+
+  .task-item {
+    padding: 1rem 0.75rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .day-header {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.5rem;
+  }
+
+  .day-date {
+    align-self: flex-start;
+  }
+
+  .auth-card {
+    padding: 1.5rem;
+  }
+
+  .auth-form input {
+    padding: 0.875rem 1rem 0.875rem 2.75rem;
+  }
+
+  .input-icon {
+    left: 0.875rem;
   }
 }
