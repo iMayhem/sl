@@ -75,7 +75,7 @@ export default function Auth({ onComplete }) {
             </div>
             <h2 className="title-glow" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Cloud Sync</h2>
             <p className="subtitle" style={{ marginBottom: '1.5rem', fontSize: '0.875rem', lineHeight: '1.4' }}>
-                Choose a unique username to save your progress permanently.
+                Enter your name to sync progress and open your planner.
             </p>
 
             {message && <div className="auth-message success" style={{ padding: '0.75rem', fontSize: '0.85rem', marginBottom: '1.25rem' }}>{message}</div>}
@@ -86,7 +86,7 @@ export default function Auth({ onComplete }) {
                     <User className="input-icon" size={18} />
                     <input
                         type="text"
-                        placeholder="Enter unique username"
+                        placeholder="Your name"
                         value={username}
                         required
                         autoFocus
