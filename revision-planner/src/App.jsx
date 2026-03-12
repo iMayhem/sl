@@ -263,7 +263,6 @@ function App() {
   };
   const splitTopics = (topicString) => {
     const parts = topicString
-      .replace(/P-Block[- ]*Group[0-9,\s&]+/gi, 'P-Block')
       .replace(/D\s*&\s*F[- ]*Block(\s*elements)?/gi, 'd/f block')
       .replace(/\b(D|F)[- ]*Block(\s*elements)?\b/gi, 'd/f block')
       .replace(/Alcohols,\s*Phenols/gi, 'Alcohols|Phenols')
