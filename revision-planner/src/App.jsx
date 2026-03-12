@@ -234,15 +234,22 @@ function App() {
     }
   };
 
-  const reviseMapping = {
-    'REVISE A': 'Reproduction in flowering plants, Biological classification, Plant kingdom, Anatomy of flowering plants, Reproductive health',
-    'REVISE B': 'Photosynthesis in higher plants, Ecosystem, Respiration in plants, Human reproduction',
-    'REVISE C': 'Animal kingdom, Biotechnology: Principle & processes, Biotechnology & its applications, Cell cycle & cell division, Biomolecules, Neural control & coordination',
-    'REVISE D': 'Morphology of flowering plants, Human health & diseases, Principle of inheritance & variations, Evolution, Chemical coordination & integration',
+  const baseRevise = {
+    'REVISE A': 'Reproduction in flowering plants, Biological classification, Plant Kingdom, Anatomy of flowering plants, Reproductive Health',
+    'REVISE B': 'Photosynthesis in higher plants, Ecosystem, Respiration in plants, Human Reproduction',
+    'REVISE C': 'Animal kingdom, Biotechnology: Principle & processes, Biotechnology & its applications, Cell cycle & cell division, Biomolecules, Neural Control & Coordination',
+    'REVISE D': 'Morphology of flowering plants, Human health & diseases, Principle of inheritance & variation, Evolution, Chemical control & integration',
     'REVISE E': 'Molecular basis of inheritance, Breathing & exchange of gases, The living world, Animal tissues, Microbes in human welfare, Cell: the unit of life',
-    'REVISE F': 'Plant growth & development, Body fluid & circulation, Organism & population, Excretory products & their elimination, Locomotion & movement, Biodiversity & conservation',
-    'REVISE A+F': 'Reproduction in flowering plants, Plant growth & development, Body fluid & circulation, Organism & population...',
-    'REVISE B+E': 'Photosynthesis in higher plants, Ecosystem, Respiration in plants, Molecular basis of inheritance...',
+    'REVISE F': 'Plant growth & development, Body fluid & circulation, Organism & population, Excretory products & elimination, Locomotion & movement, Biodiversity & conservation',
+  };
+
+  const reviseMapping = {
+    ...baseRevise,
+    'REVISE A+C': `${baseRevise['REVISE A']}, ${baseRevise['REVISE C']}`,
+    'REVISE B+D': `${baseRevise['REVISE B']}, ${baseRevise['REVISE D']}`,
+    'REVISE E+F': `${baseRevise['REVISE E']}, ${baseRevise['REVISE F']}`,
+    'REVISE A+F': `${baseRevise['REVISE A']}, ${baseRevise['REVISE F']}`,
+    'REVISE B+E': `${baseRevise['REVISE B']}, ${baseRevise['REVISE E']}`,
   };
 
   const expandTopic = (topic) => {
