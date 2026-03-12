@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search, Trophy, Info } from 'lucide-react';
+import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search, Trophy, Info, User, ArrowRight } from 'lucide-react';
 import fallbackScheduleData from './data/schedule.json';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
@@ -18,7 +18,7 @@ function App() {
   const [showAdmin, setShowAdmin] = useState(false);
 
   // Friends Feature States
-  const [viewMode, setViewMode] = useState('me'); // 'me' | 'friend'
+  const [viewMode, setViewMode] = useState('me'); // 'me' | 'friend' | 'people'
   const [friendSearchQuery, setFriendSearchQuery] = useState('');
   const [friendProfile, setFriendProfile] = useState(null);
   const [friendCompletedTasks, setFriendCompletedTasks] = useState(new Set());
@@ -112,37 +112,39 @@ function App() {
         }
 
         // --- GUEST SYNC LOGIC ---
-        // If there are guest tasks in localStorage, push them to Supabase
         const guestTasks = localStorage.getItem('guest_completed_tasks');
+        const guestStart = localStorage.getItem('guest_startDate');
+
         if (guestTasks) {
           try {
             const taskIds = JSON.parse(guestTasks);
             if (taskIds.length > 0) {
-              console.log("Syncing guest tasks to account...", taskIds.length);
+              console.log("Merging guest tasks into cloud...", taskIds.length);
               const pushData = taskIds.map(tid => ({ user_id: session.user.id, task_id: tid }));
-              // Use upsert to avoid duplicates just in case
-              const { error: syncError } = await supabase
+
+              await supabase
                 .from('completed_tasks')
                 .upsert(pushData, { onConflict: 'user_id,task_id' });
 
-              if (!syncError) {
-                // Success! Clear guest storage and local state will be refreshed by fetchUserData
-                localStorage.removeItem('guest_completed_tasks');
-                localStorage.removeItem('guest_startDate');
-
-                // Re-fetch to get merged state
-                const { data: refreshedTasks } = await supabase
-                  .from('completed_tasks')
-                  .select('task_id')
-                  .eq('user_id', session.user.id);
-                if (refreshedTasks) {
-                  setCompletedTasks(new Set(refreshedTasks.map(r => r.task_id)));
-                }
-              }
+              localStorage.removeItem('guest_completed_tasks');
             }
-          } catch (e) {
-            console.error("Failed to sync guest tasks:", e);
-          }
+          } catch (e) { console.error("Sync error:", e); }
+        }
+
+        if (guestStart) {
+          localStorage.setItem(`startDate_${session.user.id}`, guestStart);
+          localStorage.removeItem('guest_startDate');
+          setStartDateStr(guestStart);
+        }
+
+        // Final fetch to get the combined state (DB + newly merged guest tasks)
+        const { data: finalTasks } = await supabase
+          .from('completed_tasks')
+          .select('task_id')
+          .eq('user_id', session.user.id);
+
+        if (finalTasks) {
+          setCompletedTasks(new Set(finalTasks.map(r => r.task_id)));
         }
       } catch (e) {
         console.error('Error fetching user data:', e);
