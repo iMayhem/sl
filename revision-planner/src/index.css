@@ -6,7 +6,9 @@
   --text-primary: #f8fafc;
   --text-secondary: #94a3b8;
   --accent-primary: #3b82f6;
+  --accent-primary-rgb: 59, 130, 246;
   --accent-secondary: #8b5cf6;
+  --accent-secondary-rgb: 139, 92, 246;
   --success: #10b981;
   --success-bg: rgba(16, 185, 129, 0.1);
   --error: #ef4444;
@@ -160,6 +162,36 @@ body {
   border: 1px solid rgba(16, 185, 129, 0.3);
   color: #6ee7b7;
 }
+
+/* Friends/Leaderboard Specific */
+.friends-container,
+.leaderboard-container {
+  margin-top: 1rem;
+}
+
+.leaderboard-item:hover {
+  transform: translateX(8px);
+  background: rgba(255, 255, 255, 0.05) !important;
+  border-color: rgba(255, 255, 255, 0.2) !important;
+}
+
+.leaderboard-item.current-user-rank:hover {
+  background: rgba(var(--accent-primary-rgb), 0.15) !important;
+}
+
+.mini-bar {
+  box-shadow: inset 0 1px 3px rgba(0, 0, 0, 0.2);
+}
+
+.mini-bar-fill {
+  transition: width 1s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.rank {
+  font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 20px rgba(0, 0, 0, 0.5);
+}
+
 
 /* App Container */
 .app-container {

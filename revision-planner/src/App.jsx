@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search } from 'lucide-react';
+import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search, Trophy } from 'lucide-react';
 import fallbackScheduleData from './data/schedule.json';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
@@ -24,6 +24,11 @@ function App() {
   const [friendCompletedTasks, setFriendCompletedTasks] = useState(new Set());
   const [isFriendLoading, setIsFriendLoading] = useState(false);
   const [friendError, setFriendError] = useState('');
+
+  // User/Leaderboard State
+  const [username, setUsername] = useState('');
+  const [leaderboardData, setLeaderboardData] = useState([]);
+  const [isLeaderboardLoading, setIsLeaderboardLoading] = useState(false);
 
   // Handle Authentication setup
   useEffect(() => {
@@ -82,8 +87,11 @@ function App() {
           .eq('id', session.user.id)
           .single();
 
-        if (profile?.username === 'sujeet') {
-          setIsAdmin(true);
+        if (profile) {
+          setUsername(profile.username);
+          if (profile.username === 'sujeet') {
+            setIsAdmin(true);
+          }
         }
 
       } catch (e) {
@@ -238,6 +246,48 @@ function App() {
       setIsFriendLoading(false);
     }
   };
+
+  const fetchLeaderboard = async () => {
+    setIsLeaderboardLoading(true);
+    try {
+      const { data: profiles, error: profileErr } = await supabase
+        .from('profiles')
+        .select('id, username');
+
+      if (profileErr) throw profileErr;
+
+      const { data: allTasks, error: tasksErr } = await supabase
+        .from('completed_tasks')
+        .select('user_id');
+
+      if (tasksErr) throw tasksErr;
+
+      const counts = allTasks.reduce((acc, task) => {
+        acc[task.user_id] = (acc[task.user_id] || 0) + 1;
+        return acc;
+      }, {});
+
+      const totalTasks = scheduleData.reduce((acc, day) => acc + day.tasks.length, 0);
+
+      const leaderboard = profiles.map(p => ({
+        username: p.username,
+        completed: counts[p.id] || 0,
+        progress: totalTasks === 0 ? 0 : Math.round(((counts[p.id] || 0) / totalTasks) * 100)
+      })).sort((a, b) => b.completed - a.completed);
+
+      setLeaderboardData(leaderboard);
+    } catch (err) {
+      console.error('Error fetching leaderboard:', err);
+    } finally {
+      setIsLeaderboardLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    if (viewMode === 'people') {
+      fetchLeaderboard();
+    }
+  }, [viewMode, scheduleData]);
 
   const baseRevise = {
     'REVISE A': 'Reproduction in flowering plants, Biological classification, Plant Kingdom, Anatomy of flowering plants, Reproductive Health',
@@ -418,6 +468,13 @@ function App() {
             >
               <Users size={16} /> Friends
             </button>
+            <button
+              className={`filter-btn ${viewMode === 'people' ? 'active' : ''}`}
+              onClick={() => setViewMode('people')}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Trophy size={16} /> People
+            </button>
           </div>
 
           {viewMode === 'friend' && (
@@ -466,95 +523,148 @@ function App() {
             </div>
           )}
 
+          {viewMode === 'people' && (
+            <div className="leaderboard-container animate-fade-in">
+              <div className="leaderboard-header" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '2rem', padding: '0 0.5rem' }}>
+                <Trophy size={28} color="var(--accent-primary)" />
+                <h2 style={{ fontSize: '1.75rem', margin: 0, fontWeight: 700, letterSpacing: '-0.02em' }}>People</h2>
+              </div>
+
+              {isLeaderboardLoading ? (
+                <div style={{ padding: '4rem', textAlign: 'center', background: 'rgba(255,255,255,0.02)', borderRadius: '1.5rem' }}>
+                  <Loader2 className="animate-spin" size={40} style={{ margin: '0 auto 1.5rem', color: 'var(--accent-primary)' }} />
+                  <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem' }}>Updating rankings...</p>
+                </div>
+              ) : (
+                <div className="leaderboard-list" style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+                  {leaderboardData.map((user, idx) => (
+                    <div
+                      key={user.username}
+                      className={`leaderboard-item ${user.username === username ? 'current-user-rank' : ''}`}
+                      style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '1.5rem',
+                        padding: '1.25rem 1.5rem',
+                        background: user.username === username ? 'rgba(var(--accent-primary-rgb), 0.1)' : 'rgba(255,255,255,0.03)',
+                        borderRadius: '1.25rem',
+                        border: user.username === username ? '1px solid var(--accent-primary)' : '1px solid var(--border-color)',
+                        transition: 'all 0.3s ease',
+                        position: 'relative',
+                        overflow: 'hidden'
+                      }}
+                    >
+                      <div className="rank" style={{ fontSize: '1.5rem', fontWeight: 800, color: idx === 0 ? '#fbbf24' : idx === 1 ? '#94a3b8' : idx === 2 ? '#92400e' : 'var(--text-secondary)', width: '3rem', textAlign: 'center' }}>
+                        #{idx + 1}
+                      </div>
+                      <div className="user-info" style={{ flex: 1 }}>
+                        <div className="username" style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+                          @{user.username} {user.username === username && <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>(You)</span>}
+                        </div>
+                        <div className="progress-text" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.completed} tasks solved</div>
+                      </div>
+                      <div className="progress-percent" style={{ textAlign: 'right', minWidth: '100px' }}>
+                        <div className="percent-label" style={{ fontSize: '1.2rem', fontWeight: 700, color: 'var(--accent-primary)' }}>{user.progress}%</div>
+                        <div className="mini-bar" style={{ width: '100%', height: '4px', background: 'rgba(255,255,255,0.1)', borderRadius: '2px', marginTop: '0.5rem', overflow: 'hidden' }}>
+                          <div className="mini-bar-fill" style={{ width: `${user.progress}%`, height: '100%', background: 'var(--accent-primary)', boxShadow: '0 0 10px var(--accent-primary)' }} />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
           {/* Show Days Filters only if viewing 'me', or if viewing 'friend' and a friend is loaded */}
           {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
-            <div className="filters">
-              <button
-                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-                onClick={() => setFilter('all')}
-              >
-                All Days
-              </button>
-              <button
-                className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
-                onClick={() => setFilter('active')}
-              >
-                Active
-              </button>
-              <button
-                className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
-                onClick={() => setFilter('completed')}
-              >
-                Completed
-              </button>
-            </div>
-          )}
+            <>
+              <div className="filters">
+                <button
+                  className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                  onClick={() => setFilter('all')}
+                >
+                  All Days
+                </button>
+                <button
+                  className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
+                  onClick={() => setFilter('active')}
+                >
+                  Active
+                </button>
+                <button
+                  className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+                  onClick={() => setFilter('completed')}
+                >
+                  Completed
+                </button>
+              </div>
 
-          {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
-            <div className="days-grid">
-              {isLoading ? (
-                <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
-                  <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
-                  <p>Loading your progress...</p>
-                </div>
-              ) : filteredDays.map((day, index) => {
-                const dayCompletedTasks = day.tasks.filter(t => activeCompletedTasks.has(t.id)).length;
-                const isDayCompleted = dayCompletedTasks === day.tasks.length;
-
-                return (
-                  <div
-                    key={day.day}
-                    className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
-                    style={{ animationDelay: `${(index % 10) * 50}ms` }}
-                  >
-                    <div className="day-header">
-                      <div className="day-title">
-                        {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
-                        Day {day.day}
-                      </div>
-                      <div className="day-date">
-                        {getDynamicDate(day.day, startDateStr) || day.date}
-                      </div>
-                    </div>
-
-                    <div className="task-list">
-                      {day.tasks.map(task => {
-                        const isCompleted = activeCompletedTasks.has(task.id);
-                        return (
-                          <div
-                            key={task.id}
-                            className={`task-item ${isCompleted ? 'completed' : ''}`}
-                            onClick={() => toggleTask(task.id)}
-                            style={viewMode === 'friend' ? { cursor: 'default' } : {}}
-                          >
-                            <div className="checkbox-wrapper">
-                              {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
-                            </div>
-                            <div className="task-content">
-                              <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
-                                {task.subject}
-                              </span>
-                              <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic), task.subject)}</span>
-                            </div>
-                          </div>
-                        );
-                      })}
-                    </div>
+              <div className="days-grid">
+                {isLoading ? (
+                  <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
+                    <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
+                    <p>Loading your progress...</p>
                   </div>
-                );
-              })}
-            </div>
-          )}
+                ) : filteredDays.map((day, index) => {
+                  const dayCompletedTasks = day.tasks.filter(t => activeCompletedTasks.has(t.id)).length;
+                  const isDayCompleted = dayCompletedTasks === day.tasks.length;
 
-          {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && !isLoading && !isFriendLoading && filteredDays.length === 0 && (
-            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-              <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-              <p>No days match your current filter.</p>
-            </div>
+                  return (
+                    <div
+                      key={day.day}
+                      className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
+                      style={{ animationDelay: `${(index % 10) * 50}ms` }}
+                    >
+                      <div className="day-header">
+                        <div className="day-title">
+                          {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
+                          Day {day.day}
+                        </div>
+                        <div className="day-date">
+                          {getDynamicDate(day.day, startDateStr) || day.date}
+                        </div>
+                      </div>
+
+                      <div className="task-list">
+                        {day.tasks.map(task => {
+                          const isCompleted = activeCompletedTasks.has(task.id);
+                          return (
+                            <div
+                              key={task.id}
+                              className={`task-item ${isCompleted ? 'completed' : ''}`}
+                              onClick={() => toggleTask(task.id)}
+                              style={viewMode === 'friend' ? { cursor: 'default' } : {}}
+                            >
+                              <div className="checkbox-wrapper">
+                                {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
+                              </div>
+                              <div className="task-content">
+                                <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
+                                  {task.subject}
+                                </span>
+                                <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic), task.subject)}</span>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+
+              {!isLoading && !isFriendLoading && filteredDays.length === 0 && (
+                <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+                  <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+                  <p>No days match your current filter.</p>
+                </div>
+              )}
+            </>
           )}
         </>
       )}
-    </div>
+    </div >
   );
 }
 
