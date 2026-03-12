@@ -182,7 +182,7 @@ function App() {
     const completed = activeCompletedTasks.size;
     const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
     return { total, completed, progress };
-  }, [activeCompletedTasks]);
+  }, [activeCompletedTasks, scheduleData]);
 
   const filteredDays = useMemo(() => {
     return scheduleData.filter((day) => {
@@ -193,7 +193,7 @@ function App() {
       if (filter === 'active') return !isDayCompleted;
       return true;
     });
-  }, [activeCompletedTasks, filter]);
+  }, [activeCompletedTasks, filter, scheduleData]);
 
   const handleFriendSearch = async (e) => {
     e.preventDefault();
