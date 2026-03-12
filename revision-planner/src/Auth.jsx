@@ -30,19 +30,32 @@ export default function Auth({ onComplete }) {
 
             if (existingProfile) {
                 // If it exists, we perform a Sign In
-                const { error } = await supabase.auth.signInWithPassword({
+                const { error: signInError } = await supabase.auth.signInWithPassword({
                     email: fakeEmail,
                     password: dummyPassword,
                 });
-                if (error) throw error;
+                if (signInError) throw signInError;
                 if (onComplete) onComplete();
             } else {
-                // If it doesn't exist, we perform a Sign Up
-                const { data, error } = await supabase.auth.signUp({
+                // Try to sign up first
+                const { data, error: signUpError } = await supabase.auth.signUp({
                     email: fakeEmail,
                     password: dummyPassword,
                 });
-                if (error) throw error;
+
+                // If Supabase complains the user already exists (e.g. email taken but profile missing locally),
+                // we gracefully fall back to signing in instead of showing an error.
+                if (signUpError && signUpError.message.toLowerCase().includes('already registered')) {
+                    const { error: fallbackSignInError } = await supabase.auth.signInWithPassword({
+                        email: fakeEmail,
+                        password: dummyPassword,
+                    });
+                    if (fallbackSignInError) throw fallbackSignInError;
+                    if (onComplete) onComplete();
+                    return; // Exit successfully
+                } else if (signUpError) {
+                    throw signUpError; // Throw any other sign up errors
+                }
 
                 if (data?.user) {
                     const { error: profileError } = await supabase
@@ -54,12 +67,24 @@ export default function Auth({ onComplete }) {
                     }
                 }
 
-                setMessage('Progress saved successfully!');
+                setMessage('Progress synced! Opening planner...');
                 if (onComplete) onComplete();
             }
         } catch (error) {
+            console.error("Auth Error:", error);
             if (error.message.toLowerCase().includes('rate limit')) {
                 setErrorMsg('Too many attempts! Please try again later.');
+            } else if (error.message.toLowerCase().includes('already registered')) {
+                // Fallback attempt just in case it slips to the catch block
+                const { error: finalSignInError } = await supabase.auth.signInWithPassword({
+                    email: fakeEmail,
+                    password: dummyPassword,
+                });
+                if (!finalSignInError) {
+                    if (onComplete) onComplete();
+                    return;
+                }
+                setErrorMsg('Account exists but login failed. Please try again.');
             } else {
                 setErrorMsg(error.message || 'Connection failed. Please try again.');
             }
