@@ -254,90 +254,62 @@ function App() {
         >
           Completed
         </button>
-        <button
-          className={`filter-btn ${filter === 'key' ? 'active' : ''}`}
-          onClick={() => setFilter('key')}
-        >
-          Revision Key 📖
-        </button>
       </div>
 
-      {filter === 'key' && (
-        <div className="days-grid" style={{ gridTemplateColumns: '1fr', marginBottom: '2rem' }}>
-          <div className="day-card animate-fade-in" style={{ padding: '2rem' }}>
-            <h3 style={{ marginBottom: '1.5rem', fontSize: '1.5rem', color: 'var(--accent-primary)' }}>Biology Cumulative Revision Key</h3>
-            <div style={{ display: 'grid', gap: '1.5rem', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))' }}>
-              {Object.entries(reviseMapping).filter(([k]) => !k.includes('+')).map(([key, value]) => (
-                <div key={key} style={{ background: 'rgba(255,255,255,0.03)', padding: '1rem', borderRadius: '0.75rem', border: '1px solid var(--border-color)' }}>
-                  <h4 style={{ marginBottom: '0.75rem', color: 'var(--text-primary)' }}>{key}</h4>
-                  <ul style={{ paddingLeft: '1.2rem', color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: '1.6' }}>
-                    {value.split(', ').map(chapter => (
-                      <li key={chapter}>{chapter}</li>
-                    ))}
-                  </ul>
-                </div>
-              ))}
-            </div>
+      <div className="days-grid">
+        {isLoading ? (
+          <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
+            <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
+            <p>Loading your progress...</p>
           </div>
-        </div>
-      )}
+        ) : filteredDays.map((day, index) => {
+          const dayCompletedTasks = day.tasks.filter(t => completedTasks.has(t.id)).length;
+          const isDayCompleted = dayCompletedTasks === day.tasks.length;
 
-      {filter !== 'key' && (
-        <div className="days-grid">
-          {isLoading ? (
-            <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
-              <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
-              <p>Loading your progress...</p>
-            </div>
-          ) : filteredDays.map((day, index) => {
-            const dayCompletedTasks = day.tasks.filter(t => completedTasks.has(t.id)).length;
-            const isDayCompleted = dayCompletedTasks === day.tasks.length;
-
-            return (
-              <div
-                key={day.day}
-                className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
-                style={{ animationDelay: `${(index % 10) * 50}ms` }}
-              >
-                <div className="day-header">
-                  <div className="day-title">
-                    {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
-                    Day {day.day}
-                  </div>
-                  <div className="day-date">
-                    {getDynamicDate(day.day, startDateStr) || day.date}
-                  </div>
+          return (
+            <div
+              key={day.day}
+              className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
+              style={{ animationDelay: `${(index % 10) * 50}ms` }}
+            >
+              <div className="day-header">
+                <div className="day-title">
+                  {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
+                  Day {day.day}
                 </div>
-
-                <div className="task-list">
-                  {day.tasks.map(task => {
-                    const isCompleted = completedTasks.has(task.id);
-                    return (
-                      <div
-                        key={task.id}
-                        className={`task-item ${isCompleted ? 'completed' : ''}`}
-                        onClick={() => toggleTask(task.id)}
-                      >
-                        <div className="checkbox-wrapper">
-                          {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
-                        </div>
-                        <div className="task-content">
-                          <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
-                            {task.subject}
-                          </span>
-                          <span className="task-topic">{expandTopic(task.topic)}</span>
-                        </div>
-                      </div>
-                    );
-                  })}
+                <div className="day-date">
+                  {getDynamicDate(day.day, startDateStr) || day.date}
                 </div>
               </div>
-            );
-          })}
-        </div>
-      )}
 
-      {filter !== 'key' && !isLoading && filteredDays.length === 0 && (
+              <div className="task-list">
+                {day.tasks.map(task => {
+                  const isCompleted = completedTasks.has(task.id);
+                  return (
+                    <div
+                      key={task.id}
+                      className={`task-item ${isCompleted ? 'completed' : ''}`}
+                      onClick={() => toggleTask(task.id)}
+                    >
+                      <div className="checkbox-wrapper">
+                        {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
+                      </div>
+                      <div className="task-content">
+                        <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
+                          {task.subject}
+                        </span>
+                        <span className="task-topic">{expandTopic(task.topic)}</span>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          );
+        })}
+      </div>
+
+      {!isLoading && filteredDays.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
           <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
           <p>No days match your current filter.</p>
