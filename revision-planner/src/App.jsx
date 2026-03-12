@@ -592,13 +592,6 @@ function App() {
               My Plan
             </button>
             <button
-              className={`filter-btn ${viewMode === 'friend' ? 'active' : ''}`}
-              onClick={() => setViewMode('friend')}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-            >
-              <Users size={16} /> Friends
-            </button>
-            <button
               className={`filter-btn ${viewMode === 'people' ? 'active' : ''}`}
               onClick={() => setViewMode('people')}
               style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
@@ -606,52 +599,6 @@ function App() {
               <Trophy size={16} /> People
             </button>
           </div>
-
-          {viewMode === 'friend' && (
-            <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
-              <form onSubmit={handleFriendSearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-                <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-                  <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-                  <input
-                    type="text"
-                    placeholder="Enter friend's username..."
-                    value={friendSearchQuery}
-                    onChange={(e) => setFriendSearchQuery(e.target.value)}
-                    style={{
-                      width: '100%',
-                      padding: '0.8rem 1rem 0.8rem 2.8rem',
-                      background: 'rgba(0,0,0,0.2)',
-                      border: '1px solid var(--border-color)',
-                      borderRadius: '0.75rem',
-                      color: 'var(--text-primary)',
-                      fontFamily: 'inherit',
-                      fontSize: '1rem'
-                    }}
-                  />
-                </div>
-                <button
-                  type="submit"
-                  className="auth-button"
-                  style={{ marginTop: 0, padding: '0.8rem 1.5rem' }}
-                  disabled={isFriendLoading || !friendSearchQuery.trim()}
-                >
-                  {isFriendLoading ? <Loader2 className="animate-spin" size={18} /> : 'Search'}
-                </button>
-              </form>
-
-              {friendError && (
-                <div className="auth-message error" style={{ marginTop: '1rem', marginBottom: 0 }}>
-                  {friendError}
-                </div>
-              )}
-
-              {friendProfile && (
-                <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--success-bg)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.75rem', color: '#6ee7b7' }}>
-                  Viewing progress for <strong>@{friendProfile.username}</strong>
-                </div>
-              )}
-            </div>
-          )}
 
           {viewMode === 'people' && (
             <div className="leaderboard-container animate-fade-in">
@@ -689,7 +636,7 @@ function App() {
                       </div>
                       <div className="user-info" style={{ flex: 1 }}>
                         <div className="username" style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                          @{user.username} {user.username === username && <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>(You)</span>}
+                          @{user.username === username || user.username === 'sujeet' ? user.username : `User ${idx + 1}`} {user.username === username && <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>(You)</span>}
                         </div>
                         <div className="progress-text" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.completed} tasks solved</div>
                       </div>
@@ -706,8 +653,8 @@ function App() {
             </div>
           )}
 
-          {/* Show Days Filters only if viewing 'me', or if viewing 'friend' and a friend is loaded */}
-          {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
+          {/* Show Days Filters only if viewing 'me' */}
+          {viewMode === 'me' && (
             <>
               <div className="filters">
                 <button
