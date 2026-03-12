@@ -5,7 +5,6 @@ import { User, Lock, Loader2, ArrowRight } from 'lucide-react';
 export default function Auth({ onComplete }) {
     const [loading, setLoading] = useState(false);
     const [username, setUsername] = useState('');
-    const [isSignUp, setIsSignUp] = useState(false);
     const [message, setMessage] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
 
@@ -22,18 +21,23 @@ export default function Auth({ onComplete }) {
         const dummyPassword = normalizedUsername + '_selection_2026';
 
         try {
-            if (isSignUp) {
-                // Check if username already exists in profiles
-                const { data: existingUser } = await supabase
-                    .from('profiles')
-                    .select('username')
-                    .eq('username', normalizedUsername)
-                    .single();
+            // First, check if the username already exists in the profiles table
+            const { data: existingProfile } = await supabase
+                .from('profiles')
+                .select('username')
+                .eq('username', normalizedUsername)
+                .single();
 
-                if (existingUser) {
-                    throw new Error('This username is already taken. Please choose another one.');
-                }
-
+            if (existingProfile) {
+                // If it exists, we perform a Sign In
+                const { error } = await supabase.auth.signInWithPassword({
+                    email: fakeEmail,
+                    password: dummyPassword,
+                });
+                if (error) throw error;
+                if (onComplete) onComplete();
+            } else {
+                // If it doesn't exist, we perform a Sign Up
                 const { data, error } = await supabase.auth.signUp({
                     email: fakeEmail,
                     password: dummyPassword,
@@ -46,27 +50,18 @@ export default function Auth({ onComplete }) {
                         .insert([{ id: data.user.id, username: normalizedUsername }]);
 
                     if (profileError) {
-                        console.error("Could not save username to profile table", profileError);
+                        console.error("Could not create profile", profileError);
                     }
                 }
 
-                setMessage('Account created! Welcome to Selection.');
-                if (onComplete) onComplete();
-            } else {
-                const { error } = await supabase.auth.signInWithPassword({
-                    email: fakeEmail,
-                    password: dummyPassword,
-                });
-                if (error) throw error;
+                setMessage('Progress saved successfully!');
                 if (onComplete) onComplete();
             }
         } catch (error) {
             if (error.message.toLowerCase().includes('rate limit')) {
-                setErrorMsg('Supabase Rate Limit Reached! Turn off "Confirm email" and increase "Email signups limit" in Supabase -> Authentication -> Rate Limits.');
-            } else if (error.message.toLowerCase().includes('invalid')) {
-                setErrorMsg('Supabase rejected the username! Go to Supabase -> Authentication -> Providers -> Email, and make sure "Verify email domain (MX record)" is turned OFF.');
+                setErrorMsg('Too many attempts! Please try again later.');
             } else {
-                setErrorMsg(error.message || 'An error occurred during authentication.');
+                setErrorMsg(error.message || 'Connection failed. Please try again.');
             }
         } finally {
             setLoading(false);
@@ -75,10 +70,13 @@ export default function Auth({ onComplete }) {
 
     return (
         <div className="auth-container">
-            <div className="auth-card animate-fade-in">
-                <h2 className="title-glow" style={{ fontSize: '2.5rem', marginBottom: '0.5rem' }}>Selection</h2>
-                <p className="subtitle" style={{ marginBottom: '2rem' }}>
-                    {isSignUp ? 'Create an account to save your progress' : 'Welcome back! Log in to continue.'}
+            <div className="auth-card animate-fade-in" style={{ textAlign: 'center' }}>
+                <div style={{ background: 'rgba(var(--accent-primary-rgb), 0.1)', width: '64px', height: '64px', borderRadius: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
+                    <Award size={32} color="var(--accent-primary)" />
+                </div>
+                <h2 className="title-glow" style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>Cloud Sync</h2>
+                <p className="subtitle" style={{ marginBottom: '2rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
+                    Choose a unique username to save your progress permanently in the cloud.
                 </p>
 
                 {message && <div className="auth-message success">{message}</div>}
@@ -89,7 +87,7 @@ export default function Auth({ onComplete }) {
                         <User className="input-icon" size={20} />
                         <input
                             type="text"
-                            placeholder="Your username"
+                            placeholder="Enter your name"
                             value={username}
                             required
                             autoFocus
@@ -100,31 +98,17 @@ export default function Auth({ onComplete }) {
                     <button
                         className="auth-button"
                         disabled={loading}
+                        style={{ marginTop: '0.5rem' }}
                     >
                         {loading ? (
                             <Loader2 className="animate-spin" size={20} />
                         ) : (
                             <>
-                                {isSignUp ? 'Sign Up' : 'Log In'} <ArrowRight size={20} />
+                                Save & Sync progress <ArrowRight size={20} />
                             </>
                         )}
                     </button>
                 </form>
-
-                <div className="auth-footer">
-                    <button
-                        type="button"
-                        className="toggle-auth-btn"
-                        onClick={() => {
-                            setIsSignUp(!isSignUp);
-                            setMessage('');
-                            setErrorMsg('');
-                            setUsername('');
-                        }}
-                    >
-                        {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
-                    </button>
-                </div>
             </div>
         </div>
     );
