@@ -2,31 +2,32 @@ import { useState, useMemo } from 'react';
 import { supabase } from './supabaseClient';
 import { Save, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Pencil, Check, X, Trash2 } from 'lucide-react';
 
-// Helper: extract unique chapters per subject from schedule data
+// Helper: extract unique chapters per subject from schedule data (case-insensitive dedup)
 function extractChaptersBySubject(scheduleData) {
     const subjects = {};
     scheduleData.forEach(day => {
         if (!day.tasks) return;
         day.tasks.forEach(task => {
             const subj = task.subject;
-            if (!subjects[subj]) subjects[subj] = new Set();
-            // Split on + and , to get individual chapter tokens
+            if (!subjects[subj]) subjects[subj] = {}; // key: lowercase, value: canonical name
             task.topic.split(/[+,]/).map(s => s.trim()).filter(Boolean).forEach(c => {
-                subjects[subj].add(c);
+                const lower = c.toLowerCase();
+                if (!subjects[subj][lower]) {
+                    subjects[subj][lower] = c; // store first seen casing as canonical
+                }
             });
         });
     });
-    // Convert sets to arrays, sorted
+    // Return sorted canonical names per subject
     return Object.fromEntries(
-        Object.entries(subjects).map(([subj, set]) => [subj, [...set].sort()])
+        Object.entries(subjects).map(([subj, map]) => [subj, Object.values(map).sort()])
     );
 }
 
-// Recursively replace ALL occurrences of oldName with newName in a topic string
+// Replace ALL occurrences of oldName (case-insensitive) with newName in a topic string
 function replaceChapterInTopic(topic, oldName, newName) {
-    // Escape special regex chars in oldName
     const escaped = oldName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
-    return topic.replace(new RegExp(escaped, 'g'), newName);
+    return topic.replace(new RegExp(escaped, 'gi'), newName);
 }
 
 export default function Admin({ scheduleData, onSave }) {
