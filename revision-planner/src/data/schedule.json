@@ -316,7 +316,7 @@
       {
         "id": "day11-physics",
         "subject": "Physics",
-        "topic": "Rotational Motion , Properties of solids"
+        "topic": "Rotational Motion, Properties of solids"
       },
       {
         "id": "day11-inorganic",
@@ -347,7 +347,7 @@
       {
         "id": "day12-physics",
         "subject": "Physics",
-        "topic": "Gravitation , Properties of fluids"
+        "topic": "Gravitation, Properties of fluids"
       },
       {
         "id": "day12-inorganic",
@@ -378,7 +378,7 @@
       {
         "id": "day13-physics",
         "subject": "Physics",
-        "topic": "Gravitation , Properties of fluids"
+        "topic": "Gravitation, Properties of fluids"
       },
       {
         "id": "day13-inorganic",
@@ -409,7 +409,7 @@
       {
         "id": "day14-physics",
         "subject": "Physics",
-        "topic": "Rotational Motion , Thermal properties of matter"
+        "topic": "Rotational Motion, Thermal properties of matter"
       },
       {
         "id": "day14-inorganic",
@@ -440,7 +440,7 @@
       {
         "id": "day15-physics",
         "subject": "Physics",
-        "topic": "Work, energy & Power , Gravitation , Thermal properties of matter"
+        "topic": "Work, energy & Power, Gravitation, Thermal properties of matter"
       },
       {
         "id": "day15-inorganic",
@@ -471,7 +471,7 @@
       {
         "id": "day16-physics",
         "subject": "Physics",
-        "topic": "Electric charges & fields , Electrostatic Potential and capacitance"
+        "topic": "Electric charges & fields, Electrostatic Potential and capacitance"
       },
       {
         "id": "day16-inorganic",
@@ -502,7 +502,7 @@
       {
         "id": "day17-physics",
         "subject": "Physics",
-        "topic": "Electric charges & fields , Current electricity , Thermodynamics"
+        "topic": "Electric charges & fields, Electrostatic Potential and capacitance"
       },
       {
         "id": "day17-inorganic",
@@ -533,7 +533,7 @@
       {
         "id": "day18-physics",
         "subject": "Physics",
-        "topic": "Electrostatic Potential and capacitance"
+        "topic": "Current electricity, Thermodynamics"
       },
       {
         "id": "day18-inorganic",
@@ -626,7 +626,7 @@
       {
         "id": "day21-physics",
         "subject": "Physics",
-        "topic": "Work, energy & power , Gravitation , Thermal properties of matter"
+        "topic": "Work, energy & power, Gravitation, Thermal properties of matter"
       },
       {
         "id": "day21-inorganic",
@@ -657,12 +657,12 @@
       {
         "id": "day22-physics",
         "subject": "Physics",
-        "topic": "Unit & Dimension, Motion in straight line , Motion in plane, Properties of fluids"
+        "topic": "Unit & Dimension, Motion in straight line, Motion in plane, Properties of fluids"
       },
       {
         "id": "day22-inorganic",
         "subject": "Inorganic",
-        "topic": "P-Block-Group 15 & 16"
+        "topic": "P-Block- Group 15 & 16"
       },
       {
         "id": "day22-organic",
@@ -688,12 +688,12 @@
       {
         "id": "day23-physics",
         "subject": "Physics",
-        "topic": "Electric charges & fields , Electrostatic Potential and capacitance"
+        "topic": "Electric charges & fields, Electrostatic Potential and capacitance"
       },
       {
         "id": "day23-inorganic",
         "subject": "Inorganic",
-        "topic": "P-Block-Group 13 & 14"
+        "topic": "P-Block- Group 13 & 14"
       },
       {
         "id": "day23-organic",
@@ -719,7 +719,7 @@
       {
         "id": "day24-physics",
         "subject": "Physics",
-        "topic": "Current electricity , Thermodynamics"
+        "topic": "Current electricity, Thermodynamics"
       },
       {
         "id": "day24-inorganic",
@@ -750,7 +750,7 @@
       {
         "id": "day25-physics",
         "subject": "Physics",
-        "topic": "Moving charges & magnetism , Magnetism & matter , Kinetic theory of gases"
+        "topic": "Moving charges & magnetism, Magnetism & matter, Kinetic theory of gases"
       },
       {
         "id": "day25-inorganic",
@@ -781,7 +781,7 @@
       {
         "id": "day26-physics",
         "subject": "Physics",
-        "topic": "Moving charges & magnetism , Magnetism & matter , Kinetic theory of gases"
+        "topic": "Moving charges & magnetism, Magnetism & matter, Kinetic theory of gases"
       },
       {
         "id": "day26-inorganic",
@@ -812,7 +812,7 @@
       {
         "id": "day27-physics",
         "subject": "Physics",
-        "topic": "Electromagnetic Induction , Electromagnetic Waves"
+        "topic": "Electromagnetic Induction, Electromagnetic Waves"
       },
       {
         "id": "day27-inorganic",
@@ -843,7 +843,7 @@
       {
         "id": "day28-physics",
         "subject": "Physics",
-        "topic": "Electromagnetic Induction , Electromagnetic Waves"
+        "topic": "Electromagnetic Induction, Electromagnetic Waves"
       },
       {
         "id": "day28-inorganic",
@@ -936,12 +936,12 @@
       {
         "id": "day31-physics",
         "subject": "Physics",
-        "topic": "Moving charges & magnetism , Magnetism & matter , Kinetic theory of gases"
+        "topic": "Moving charges & magnetism, Magnetism & matter, Kinetic theory of gases"
       },
       {
         "id": "day31-inorganic",
         "subject": "Inorganic",
-        "topic": "P-Block-Group 17 & 18"
+        "topic": "P-Block- Group 17 & 18"
       },
       {
         "id": "day31-organic",
@@ -967,7 +967,7 @@
       {
         "id": "day32-physics",
         "subject": "Physics",
-        "topic": "Electromagnetic Induction , Electromagnetic Waves , Oscillations"
+        "topic": "Electromagnetic Induction, Electromagnetic Waves, Oscillations"
       },
       {
         "id": "day32-inorganic",
@@ -998,12 +998,12 @@
       {
         "id": "day33-physics",
         "subject": "Physics",
-        "topic": "Alternating current , Current electricity, Thermodynamics"
+        "topic": "Alternating current, Current electricity, Thermodynamics"
       },
       {
         "id": "day33-inorganic",
         "subject": "Inorganic",
-        "topic": "P-Block-Group 13 & 14"
+        "topic": "P-Block- Group 13 & 14"
       },
       {
         "id": "day33-organic",
@@ -1029,7 +1029,7 @@
       {
         "id": "day34-physics",
         "subject": "Physics",
-        "topic": "Electric charges & fields , Electrostatic Potential and capacitance , Oscillations"
+        "topic": "Electric charges & fields, Electrostatic Potential and capacitance, Oscillations"
       },
       {
         "id": "day34-inorganic",
@@ -1060,7 +1060,7 @@
       {
         "id": "day35-physics",
         "subject": "Physics",
-        "topic": "Rotational motion , Laws of motion , Properties of solids"
+        "topic": "Rotational motion, Laws of motion, Properties of solids"
       },
       {
         "id": "day35-inorganic",
@@ -1091,7 +1091,7 @@
       {
         "id": "day36-physics",
         "subject": "Physics",
-        "topic": "Work, energy & power , Gravitation , Thermal properties of matter"
+        "topic": "Work, energy & power, Gravitation, Thermal properties of matter"
       },
       {
         "id": "day36-inorganic",
@@ -1122,7 +1122,7 @@
       {
         "id": "day37-physics",
         "subject": "Physics",
-        "topic": "Unit & Dimension , Motion in straight line , Motion in plane , Properties of fluids"
+        "topic": "Unit & Dimension, Motion in straight line, Motion in plane, Properties of fluids"
       },
       {
         "id": "day37-inorganic",
@@ -1215,12 +1215,12 @@
       {
         "id": "day40-physics",
         "subject": "Physics",
-        "topic": "Dual nature of radiation & matter , Atoms , Nuclei"
+        "topic": "Dual nature of radiation & matter, Atoms, Nuclei"
       },
       {
         "id": "day40-inorganic",
         "subject": "Inorganic",
-        "topic": "P-Block-Group 17 & 18"
+        "topic": "P-Block- Group 17 & 18"
       },
       {
         "id": "day40-organic",
@@ -1246,7 +1246,7 @@
       {
         "id": "day41-physics",
         "subject": "Physics",
-        "topic": "Dual nature of radiation & matter , Atoms , Nuclei"
+        "topic": "Dual nature of radiation & matter, Atoms, Nuclei"
       },
       {
         "id": "day41-inorganic",
@@ -1277,7 +1277,7 @@
       {
         "id": "day42-physics",
         "subject": "Physics",
-        "topic": "Ray optics , Wave optics , Oscillations"
+        "topic": "Ray optics, Wave optics, Oscillations"
       },
       {
         "id": "day42-inorganic",
@@ -1339,7 +1339,7 @@
       {
         "id": "day44-physics",
         "subject": "Physics",
-        "topic": "Dual nature of radiation & matter , Atoms , Nuclei , Semiconductors"
+        "topic": "Dual nature of radiation & matter, Atoms, Nuclei, Semiconductors"
       },
       {
         "id": "day44-inorganic",
@@ -1401,7 +1401,7 @@
       {
         "id": "day46-physics",
         "subject": "Physics",
-        "topic": "Waves , Semiconductors , Oscillations"
+        "topic": "Waves, Semiconductors, Oscillations"
       },
       {
         "id": "day46-inorganic",
@@ -1432,7 +1432,7 @@
       {
         "id": "day47-physics",
         "subject": "Physics",
-        "topic": "Moving charges & magnetism , Magnetism & matter , Kinetic theory of gases , Thermodynamics"
+        "topic": "Moving charges & magnetism, Magnetism & matter, Kinetic theory of gases, Thermodynamics"
       },
       {
         "id": "day47-inorganic",
@@ -1442,7 +1442,7 @@
       {
         "id": "day47-organic",
         "subject": "Organic",
-        "topic": "Aldehydes, Ketones & Carboxylic acids"
+        "topic": "Amines + Biomolecules"
       },
       {
         "id": "day47-physical",
@@ -1463,7 +1463,7 @@
       {
         "id": "day48-physics",
         "subject": "Physics",
-        "topic": "Electromagnetic Induction , Electromagnetic Waves , Alternating current , Properties of solids"
+        "topic": "Electromagnetic Induction, Electromagnetic Waves, Alternating current, Properties of solids"
       },
       {
         "id": "day48-inorganic",
@@ -1473,7 +1473,7 @@
       {
         "id": "day48-organic",
         "subject": "Organic",
-        "topic": "Amines + Biomolcules"
+        "topic": "GOC + IUPAC + Isomerism"
       },
       {
         "id": "day48-physical",
@@ -1494,7 +1494,7 @@
       {
         "id": "day49-physics",
         "subject": "Physics",
-        "topic": "Electric charges & fields , Electrostatic Potential and capacitance, Current electricity"
+        "topic": "Electric charges & fields, Electrostatic Potential and capacitance, Current electricity"
       },
       {
         "id": "day49-inorganic",
@@ -1504,7 +1504,7 @@
       {
         "id": "day49-organic",
         "subject": "Organic",
-        "topic": "Amines + Biomolcules"
+        "topic": "Hydrocarbon + Haloalkane & Haloarene"
       },
       {
         "id": "day49-physical",
@@ -1525,17 +1525,17 @@
       {
         "id": "day50-physics",
         "subject": "Physics",
-        "topic": "Ray optics , Dual nature of radiation & matter, Atoms, Semiconductors"
+        "topic": "Ray optics, Dual nature of radiation & matter, Atoms, Semiconductors"
       },
       {
         "id": "day50-inorganic",
         "subject": "Inorganic",
-        "topic": "P-Block-Group 16, 17 & 18"
+        "topic": "P-Block- Group 16, 17 & 18"
       },
       {
         "id": "day50-organic",
         "subject": "Organic",
-        "topic": "GOC + IUPAC + Isomerism"
+        "topic": "Alcohols, Phenols & Ethers"
       },
       {
         "id": "day50-physical",
@@ -1556,7 +1556,7 @@
       {
         "id": "day51-physics",
         "subject": "Physics",
-        "topic": "Work, energy & power , Gravitation , Unit & measurements , Motion in straight line , Motion in plane"
+        "topic": "Work, energy & power, Gravitation, Unit & measurements, Motion in straight line, Motion in plane"
       },
       {
         "id": "day51-inorganic",
@@ -1587,7 +1587,7 @@
       {
         "id": "day52-physics",
         "subject": "Physics",
-        "topic": "Rotational motion , Laws of motion , Properties of fluids , Thermal properties of matter"
+        "topic": "Rotational motion, Laws of motion, Properties of fluids, Thermal properties of matter"
       },
       {
         "id": "day52-inorganic",
@@ -1597,7 +1597,7 @@
       {
         "id": "day52-organic",
         "subject": "Organic",
-        "topic": "Amines + Biomolcules"
+        "topic": "Amines + Biomolecules"
       },
       {
         "id": "day52-physical",
@@ -1618,7 +1618,7 @@
       {
         "id": "day53-physics",
         "subject": "Physics",
-        "topic": "Waves , Oscillations , Wave optics, Nuclei"
+        "topic": "Waves, Oscillations, Wave optics, Nuclei"
       },
       {
         "id": "day53-inorganic",
@@ -1649,22 +1649,22 @@
       {
         "id": "day54-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Moving charges & magnetism, Magnetism & matter, Kinetic theory of gases, Thermodynamics"
       },
       {
         "id": "day54-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "Coordination Compounds"
       },
       {
         "id": "day54-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "Hydrocarbon + Haloalkane & Haloarene"
       },
       {
         "id": "day54-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Equilibrium"
       },
       {
         "id": "day54-biology",
@@ -1680,22 +1680,22 @@
       {
         "id": "day55-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Electromagnetic Induction, Electromagnetic Waves, Alternating current, Properties of solids"
       },
       {
         "id": "day55-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "P-Block elements"
       },
       {
         "id": "day55-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "Alcohols, Phenols & Ethers"
       },
       {
         "id": "day55-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Electrochemistry"
       },
       {
         "id": "day55-biology",
@@ -1711,22 +1711,22 @@
       {
         "id": "day56-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Electric charges & fields, Electrostatic Potential and capacitance, Current electricity"
       },
       {
         "id": "day56-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "D & F-Block elements"
       },
       {
         "id": "day56-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "Aldehydes, Ketones & Carboxylic acids"
       },
       {
         "id": "day56-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Redox reaction + Structure of atom + Chemical Kinetics"
       },
       {
         "id": "day56-biology",
@@ -1742,22 +1742,22 @@
       {
         "id": "day57-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Ray optics, Dual nature of radiation & matter, Atoms, Semiconductors"
       },
       {
         "id": "day57-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "Chemical Bonding and Molecular Structure"
       },
       {
         "id": "day57-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "Amines + Biomolecules"
       },
       {
         "id": "day57-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Some Basic Concepts of Chemistry + Solution"
       },
       {
         "id": "day57-biology",
@@ -1773,22 +1773,22 @@
       {
         "id": "day58-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Work, energy & power, Gravitation, Unit & measurements, Motion in straight line, Motion in plane"
       },
       {
         "id": "day58-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "Coordination Compounds"
       },
       {
         "id": "day58-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "GOC + IUPAC + Isomerism"
       },
       {
         "id": "day58-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Weak areas"
       },
       {
         "id": "day58-biology",
@@ -1804,22 +1804,22 @@
       {
         "id": "day59-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Rotational motion, Laws of motion, Properties of fluids, Thermal properties of matter"
       },
       {
         "id": "day59-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "P-Block elements"
       },
       {
         "id": "day59-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "Weak areas"
       },
       {
         "id": "day59-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Weak areas"
       },
       {
         "id": "day59-biology",
@@ -1835,22 +1835,22 @@
       {
         "id": "day60-physics",
         "subject": "Physics",
-        "topic": ""
+        "topic": "Waves, Oscillations, Wave optics, Nuclei"
       },
       {
         "id": "day60-inorganic",
         "subject": "Inorganic",
-        "topic": ""
+        "topic": "Classification of elements and periodicity in properties + D & F-Block elements"
       },
       {
         "id": "day60-organic",
         "subject": "Organic",
-        "topic": ""
+        "topic": "Weak areas"
       },
       {
         "id": "day60-physical",
         "subject": "Physical",
-        "topic": ""
+        "topic": "Weak areas"
       },
       {
         "id": "day60-biology",
