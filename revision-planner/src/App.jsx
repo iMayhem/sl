@@ -636,7 +636,10 @@ function App() {
                       </div>
                       <div className="user-info" style={{ flex: 1 }}>
                         <div className="username" style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
-                          @{user.username === username ? user.username : `User ${idx + 1}`} {user.username === username && <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>(You)</span>}
+                          @{user.username === username
+                            ? (user.username === 'sujeet' ? 'Admin' : user.username)
+                            : (user.username === 'sujeet' ? `Admin` : `User ${idx + 1}`)}
+                          {user.username === username && <span style={{ fontSize: '0.8rem', opacity: 0.6 }}>(You)</span>}
                         </div>
                         <div className="progress-text" style={{ fontSize: '0.9rem', color: 'var(--text-secondary)', marginTop: '0.2rem' }}>{user.completed} tasks solved</div>
                       </div>
