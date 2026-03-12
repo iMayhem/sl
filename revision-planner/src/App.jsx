@@ -285,24 +285,21 @@ function App() {
 
   const renderTopicWithFrequency = (topicString) => {
     const normalize = (s) => s.trim().toLowerCase().replace(/[\.+]*$/, '');
-    const parts = topicString.split(/([+,])/);
+    const chapters = topicString.split(/[+,&]/).map(s => s.trim()).filter(Boolean);
 
-    return parts.map((part, idx) => {
-      if (part === ',' || part === '+') {
-        return <span key={idx} style={{ marginRight: '4px', display: 'inline-block' }}>{part}</span>;
-      }
-
-      const c = part.trim();
-      if (!c) return null;
-
-      const key = normalize(c);
-      const freq = chapterFrequencies[key] || 1;
-      return (
-        <span key={idx} style={{ display: 'inline-block', marginRight: '4px' }}>
-          {c} <span style={{ opacity: 0.6, fontSize: '0.85em', fontWeight: 500 }}>({freq}x)</span>
-        </span>
-      );
-    });
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
+        {chapters.map((c, idx) => {
+          const key = normalize(c);
+          const freq = chapterFrequencies[key] || 1;
+          return (
+            <span key={idx} style={{ display: 'block', lineHeight: '1.4' }}>
+              {c} <span style={{ opacity: 0.6, fontSize: '0.85em', fontWeight: 500 }}>({freq}x)</span>
+            </span>
+          );
+        })}
+      </div>
+    );
   };
 
   if (!session) {
