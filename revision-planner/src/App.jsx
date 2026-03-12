@@ -7,8 +7,9 @@ import Auth from './Auth';
 function App() {
   const [session, setSession] = useState(null);
   const [completedTasks, setCompletedTasks] = useState(new Set());
-  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
+  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed', 'key'
   const [isLoading, setIsLoading] = useState(true);
+  const [startDateStr, setStartDateStr] = useState('');
 
   // Handle Authentication setup
   useEffect(() => {
@@ -51,7 +52,34 @@ function App() {
     };
 
     fetchCompletedTasks();
+
+    // Load custom start date if any
+    const savedStartDate = localStorage.getItem(`startDate_${session.user.id}`);
+    if (savedStartDate) {
+      setStartDateStr(savedStartDate);
+    } else {
+      // Default to 9th March (the start day in the original prompt logic)
+      const currentYear = new Date().getFullYear();
+      setStartDateStr(`${currentYear}-03-09`);
+    }
   }, [session]);
+
+  const handleStartDateChange = (e) => {
+    const newDate = e.target.value;
+    setStartDateStr(newDate);
+    if (session?.user) {
+      localStorage.setItem(`startDate_${session.user.id}`, newDate);
+    }
+  };
+
+  const getDynamicDate = (dayNumber, dateString) => {
+    if (!dateString) return '';
+    const date = new Date(dateString);
+    // JS dates can be tricky with timezones, so we add UTC days
+    date.setUTCDate(date.getUTCDate() + (dayNumber - 1));
+    return date.toLocaleDateString('en-GB', { day: 'numeric', month: 'long' });
+    // Example: "9 March"
+  };
 
   const toggleTask = async (taskId) => {
     if (!session?.user) return;
@@ -159,7 +187,25 @@ function App() {
   return (
     <div className="app-container">
       <header>
-        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+            <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Started:</span>
+            <input
+              type="date"
+              value={startDateStr}
+              onChange={handleStartDateChange}
+              style={{
+                background: 'rgba(255,255,255,0.05)',
+                border: '1px solid var(--border-color)',
+                color: 'var(--text-primary)',
+                padding: '0.4rem 0.5rem',
+                borderRadius: '0.5rem',
+                fontFamily: 'inherit',
+                colorScheme: 'dark',
+                fontSize: '0.9rem'
+              }}
+            />
+          </div>
           <button
             className="filter-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
@@ -260,7 +306,7 @@ function App() {
                     Day {day.day}
                   </div>
                   <div className="day-date">
-                    {day.date}
+                    {getDynamicDate(day.day, startDateStr) || day.date}
                   </div>
                 </div>
 
