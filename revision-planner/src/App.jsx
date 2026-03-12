@@ -447,7 +447,8 @@ function App() {
       )}
       <header>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
-          {isAdmin && (
+          {/* Admin panel hidden as per request */}
+          {/* isAdmin && (
             <button
               className="filter-btn"
               style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: showAdmin ? 'var(--accent-primary)' : '', color: showAdmin ? '#fff' : '' }}
@@ -455,7 +456,7 @@ function App() {
             >
               🛠️ Admin
             </button>
-          )}
+          ) */}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Started:</span>
             <input
