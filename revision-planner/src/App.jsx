@@ -45,24 +45,10 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // Fetch initial data from Supabase once logged in
+  // Fetch Global Schedule (once on mount)
   useEffect(() => {
-    if (!session?.user) return;
-
-    const fetchInitialData = async () => {
-      setIsLoading(true);
+    const fetchSchedule = async () => {
       try {
-        // Fetch tasks
-        const { data: tasksData, error: tasksError } = await supabase
-          .from('completed_tasks')
-          .select('task_id')
-          .eq('user_id', session.user.id);
-
-        if (!tasksError && tasksData) {
-          setCompletedTasks(new Set(tasksData.map(row => row.task_id)));
-        }
-
-        // Fetch Global Schedule
         const { data: scheduleRows, error: schedErr } = await supabase
           .from('global_schedule')
           .select('schedule_data')
@@ -72,15 +58,46 @@ function App() {
         if (schedErr || !scheduleRows?.schedule_data || scheduleRows.schedule_data.length === 0) {
           setScheduleData(fallbackScheduleData);
         } else {
-          // Merge: use DB data as base, then fill in any days from local JSON that are missing
           const dbData = scheduleRows.schedule_data;
           const dbDayNumbers = new Set(dbData.map(d => d.day));
           const missingDays = fallbackScheduleData.filter(d => !dbDayNumbers.has(d.day));
           const merged = [...dbData, ...missingDays].sort((a, b) => a.day - b.day);
           setScheduleData(merged);
         }
+      } catch (e) {
+        console.error('Error fetching schedule:', e);
+        setScheduleData(fallbackScheduleData);
+      }
+    };
+    fetchSchedule();
+  }, []);
 
-        // Check if Admin
+  // Fetch user data from Supabase once logged in
+  useEffect(() => {
+    const fetchUserData = async () => {
+      if (!session?.user) {
+        // Guest mode: load from localStorage
+        const saved = localStorage.getItem('guest_completed_tasks');
+        if (saved) {
+          try {
+            setCompletedTasks(new Set(JSON.parse(saved)));
+          } catch (e) { console.error(e); }
+        }
+        setIsLoading(false);
+        return;
+      }
+
+      setIsLoading(true);
+      try {
+        const { data: tasksData, error: tasksError } = await supabase
+          .from('completed_tasks')
+          .select('task_id')
+          .eq('user_id', session.user.id);
+
+        if (!tasksError && tasksData) {
+          setCompletedTasks(new Set(tasksData.map(row => row.task_id)));
+        }
+
         const { data: profile } = await supabase
           .from('profiles')
           .select('username')
@@ -94,22 +111,54 @@ function App() {
           }
         }
 
+        // --- GUEST SYNC LOGIC ---
+        // If there are guest tasks in localStorage, push them to Supabase
+        const guestTasks = localStorage.getItem('guest_completed_tasks');
+        if (guestTasks) {
+          try {
+            const taskIds = JSON.parse(guestTasks);
+            if (taskIds.length > 0) {
+              console.log("Syncing guest tasks to account...", taskIds.length);
+              const pushData = taskIds.map(tid => ({ user_id: session.user.id, task_id: tid }));
+              // Use upsert to avoid duplicates just in case
+              const { error: syncError } = await supabase
+                .from('completed_tasks')
+                .upsert(pushData, { onConflict: 'user_id,task_id' });
+
+              if (!syncError) {
+                // Success! Clear guest storage and local state will be refreshed by fetchUserData
+                localStorage.removeItem('guest_completed_tasks');
+                localStorage.removeItem('guest_startDate');
+
+                // Re-fetch to get merged state
+                const { data: refreshedTasks } = await supabase
+                  .from('completed_tasks')
+                  .select('task_id')
+                  .eq('user_id', session.user.id);
+                if (refreshedTasks) {
+                  setCompletedTasks(new Set(refreshedTasks.map(r => r.task_id)));
+                }
+              }
+            }
+          } catch (e) {
+            console.error("Failed to sync guest tasks:", e);
+          }
+        }
       } catch (e) {
-        console.error('Error fetching initial data:', e);
-        if (scheduleData.length === 0) setScheduleData(fallbackScheduleData);
+        console.error('Error fetching user data:', e);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchInitialData();
+    fetchUserData();
 
-    // Load custom start date if any
-    const savedStartDate = localStorage.getItem(`startDate_${session.user.id}`);
+    // Load custom start date
+    const storageKey = session?.user ? `startDate_${session.user.id}` : 'guest_startDate';
+    const savedStartDate = localStorage.getItem(storageKey);
     if (savedStartDate) {
       setStartDateStr(savedStartDate);
     } else {
-      // Default to 2nd March
       const currentYear = new Date().getFullYear();
       setStartDateStr(`${currentYear}-03-02`);
     }
@@ -118,9 +167,8 @@ function App() {
   const handleStartDateChange = (e) => {
     const newDate = e.target.value;
     setStartDateStr(newDate);
-    if (session?.user) {
-      localStorage.setItem(`startDate_${session.user.id}`, newDate);
-    }
+    const storageKey = session?.user ? `startDate_${session.user.id}` : 'guest_startDate';
+    localStorage.setItem(storageKey, newDate);
   };
 
   const getDynamicDate = (dayNumber, dateString) => {
@@ -133,35 +181,32 @@ function App() {
   };
 
   const toggleTask = async (taskId) => {
-    if (!session?.user) return;
-    if (viewMode === 'friend') return; // Cannot edit friend's tasks
+    if (viewMode === 'friend') return;
+
+    const isCompleted = completedTasks.has(taskId);
 
     // Optimistic update
-    setCompletedTasks((prev) => {
-      const next = new Set(prev);
-      if (next.has(taskId)) {
-        next.delete(taskId);
-      } else {
-        next.add(taskId);
-      }
-      return next;
-    });
+    const nextSet = new Set(completedTasks);
+    if (isCompleted) nextSet.delete(taskId);
+    else nextSet.add(taskId);
+    setCompletedTasks(nextSet);
 
-    // Background sync to Supabase
+    if (!session?.user) {
+      // Guest mode: save to localStorage
+      localStorage.setItem('guest_completed_tasks', JSON.stringify(Array.from(nextSet)));
+      return;
+    }
+
     try {
-      if (completedTasks.has(taskId)) {
-        // Was checked, now unchecked: remove from db
-        const { error } = await supabase
+      if (isCompleted) {
+        await supabase
           .from('completed_tasks')
           .delete()
-          .match({ task_id: taskId, user_id: session.user.id });
-        if (error) throw error;
+          .match({ user_id: session.user.id, task_id: taskId });
       } else {
-        // Was unchecked, now checked: add to db
-        const { error } = await supabase
+        await supabase
           .from('completed_tasks')
-          .insert([{ task_id: taskId, user_id: session.user.id }]);
-        if (error) throw error;
+          .insert([{ user_id: session.user.id, task_id: taskId }]);
       }
     } catch (e) {
       console.error('Error syncing task state to Supabase:', e);
@@ -380,12 +425,26 @@ function App() {
     );
   };
 
-  if (!session) {
-    return <Auth />;
-  }
+  const [showAuthModal, setShowAuthModal] = useState(false);
 
   return (
     <div className="app-container">
+      {showAuthModal && (
+        <div className="modal-overlay">
+          <div
+            className="modal-backdrop"
+            style={{ position: 'absolute', inset: 0 }}
+            onClick={() => setShowAuthModal(false)}
+          />
+          <div className="modal-content">
+            <Auth
+              onComplete={() => {
+                setShowAuthModal(false);
+              }}
+            />
+          </div>
+        </div>
+      )}
       <header>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           {isAdmin && (
@@ -418,9 +477,12 @@ function App() {
           <button
             className="filter-btn"
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem' }}
-            onClick={() => supabase.auth.signOut()}
+            onClick={() => {
+              if (session) supabase.auth.signOut();
+              else setShowAuthModal(true);
+            }}
           >
-            <LogOut size={16} /> Sign Out
+            {session ? <><LogOut size={16} /> Sign Out</> : <><Award size={16} /> Save Progress</>}
           </button>
         </div>
         <h1 className="title-glow" style={{ marginBottom: '2rem' }}>Selection <span style={{ fontSize: '0.4em', opacity: 0.5 }}>v1.2</span></h1>

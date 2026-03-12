@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { supabase } from './supabaseClient';
 import { User, Lock, Loader2, ArrowRight } from 'lucide-react';
 
-export default function Auth() {
+export default function Auth({ onComplete }) {
     const [loading, setLoading] = useState(false);
     const [username, setUsername] = useState('');
     const [isSignUp, setIsSignUp] = useState(false);
@@ -51,12 +51,14 @@ export default function Auth() {
                 }
 
                 setMessage('Account created! Welcome to Selection.');
+                if (onComplete) onComplete();
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email: fakeEmail,
                     password: dummyPassword,
                 });
                 if (error) throw error;
+                if (onComplete) onComplete();
             }
         } catch (error) {
             if (error.message.toLowerCase().includes('rate limit')) {
