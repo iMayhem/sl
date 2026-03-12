@@ -1,6 +1,6 @@
 import { useState, useMemo } from 'react';
 import { supabase } from './supabaseClient';
-import { Save, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Pencil, Check, X } from 'lucide-react';
+import { Save, Loader2, AlertCircle, CheckCircle2, ChevronDown, ChevronRight, Pencil, Check, X, Trash2 } from 'lucide-react';
 
 // Helper: extract unique chapters per subject from schedule data
 function extractChaptersBySubject(scheduleData) {
@@ -86,6 +86,32 @@ export default function Admin({ scheduleData, onSave }) {
         setLocalData(updatedData);
         setJsonText(JSON.stringify(updatedData, null, 2));
         cancelEdit();
+    };
+
+    const deleteChapter = (subject, chapterName) => {
+        if (!window.confirm(`Delete "${chapterName}" from all ${subject} tasks? This cannot be undone.`)) return;
+
+        const escaped = chapterName.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+        const updatedData = localData.map(day => ({
+            ...day,
+            tasks: day.tasks.map(task => {
+                if (task.subject !== subject) return task;
+                // Remove the chapter name and clean up leftover delimiters
+                const newTopic = task.topic
+                    .replace(new RegExp(`\\s*[+,]?\\s*${escaped}\\s*[+,]?\\s*`, 'g'), (match) => {
+                        // Preserve a separator if needed
+                        if (match.trim().startsWith(',') || match.trim().startsWith('+')) return ', ';
+                        return ', ';
+                    })
+                    .replace(/^[,\s]+|[,\s]+$/g, '') // trim leading/trailing commas
+                    .replace(/,\s*,/g, ',') // remove double commas
+                    .trim();
+                return { ...task, topic: newTopic };
+            })
+        }));
+
+        setLocalData(updatedData);
+        setJsonText(JSON.stringify(updatedData, null, 2));
     };
 
     const handleSave = async (dataToSave) => {
@@ -229,6 +255,11 @@ export default function Admin({ scheduleData, onSave }) {
                                                                 style={{ background: 'none', border: 'none', cursor: 'pointer', color: 'var(--text-secondary)', padding: '2px', opacity: 0.6 }}
                                                                 title="Rename chapter"
                                                             ><Pencil size={14} /></button>
+                                                            <button
+                                                                onClick={() => deleteChapter(subj, chapter)}
+                                                                style={{ background: 'none', border: 'none', cursor: 'pointer', color: '#f87171', padding: '2px', opacity: 0.6 }}
+                                                                title="Delete chapter"
+                                                            ><Trash2 size={14} /></button>
                                                         </>
                                                     )}
                                                 </div>
