@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search, Trophy } from 'lucide-react';
+import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search, Trophy, Info } from 'lucide-react';
 import fallbackScheduleData from './data/schedule.json';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
@@ -426,6 +426,7 @@ function App() {
   };
 
   const [showAuthModal, setShowAuthModal] = useState(false);
+  const [showGuideModal, setShowGuideModal] = useState(false);
 
   return (
     <div className="app-container">
@@ -445,6 +446,62 @@ function App() {
           </div>
         </div>
       )}
+
+      {showGuideModal && (
+        <div className="modal-overlay">
+          <div
+            className="modal-backdrop"
+            style={{ position: 'absolute', inset: 0 }}
+            onClick={() => setShowGuideModal(false)}
+          />
+          <div className="modal-content" style={{ padding: '2rem' }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', marginBottom: '1.5rem' }}>
+              <Info size={28} color="var(--accent-primary)" />
+              <h2 style={{ margin: 0, fontSize: '1.5rem', fontWeight: 700 }}>Schedule Guide</h2>
+            </div>
+
+            <p style={{ color: 'var(--text-secondary)', lineHeight: '1.6', marginBottom: '1.5rem' }}>
+              The <span style={{ color: 'var(--accent-primary)', fontWeight: 600 }}>(nx)</span> label next to each chapter indicates how many times it appears in the 63-day schedule for repeated revision.
+            </p>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+              <div>
+                <h3 style={{ fontSize: '1.1rem', color: '#fbbf24', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  🔥 High Frequency (10x)
+                </h3>
+                <ul style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', paddingLeft: '1.2rem', margin: 0 }}>
+                  <li>Classification of Elements</li>
+                  <li>Basic Concepts of Chemistry</li>
+                  <li>Solutions & Hydrocarbons</li>
+                  <li>Chemical Bonding</li>
+                  <li>Coordination Compounds</li>
+                  <li>Alcohols, Phenols & Ethers</li>
+                </ul>
+              </div>
+
+              <div>
+                <h3 style={{ fontSize: '1.1rem', color: '#94a3b8', marginBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  ⭐ Priority (9x)
+                </h3>
+                <ul style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', paddingLeft: '1.2rem', margin: 0 }}>
+                  <li>GOC & IUPAC</li>
+                  <li>Isomerism</li>
+                  <li>Structure of Atom</li>
+                  <li>Redox Reactions</li>
+                </ul>
+              </div>
+            </div>
+
+            <button
+              className="auth-button"
+              style={{ marginTop: '2rem', width: '100%' }}
+              onClick={() => setShowGuideModal(false)}
+            >
+              Got it!
+            </button>
+          </div>
+        </div>
+      )}
       <header>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
           {/* Admin panel hidden as per request */}
@@ -457,6 +514,14 @@ function App() {
               🛠️ Admin
             </button>
           ) */}
+          <button
+            className="filter-btn"
+            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem' }}
+            title="Schedule Guide"
+            onClick={() => setShowGuideModal(true)}
+          >
+            <Info size={20} />
+          </button>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Started:</span>
             <input
