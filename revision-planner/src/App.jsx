@@ -262,7 +262,7 @@ function App() {
     return expanded;
   };
   const splitTopics = (topicString) => {
-    return topicString
+    const parts = topicString
       .replace(/P-Block[- ]*Group[0-9,\s&]+/gi, 'P-Block')
       .replace(/D\s*&\s*F[- ]*Block(\s*elements)?/gi, 'd/f block')
       .replace(/\b(D|F)[- ]*Block(\s*elements)?\b/gi, 'd/f block')
@@ -272,6 +272,14 @@ function App() {
       .split(/[+,]/)
       .map(s => s.replace(/\|/g, ', ').trim())
       .filter(Boolean);
+    // Deduplicate case-insensitively (keep first occurrence)
+    const seen = new Set();
+    return parts.filter(c => {
+      const key = c.toLowerCase();
+      if (seen.has(key)) return false;
+      seen.add(key);
+      return true;
+    });
   };
 
   const chapterFrequencies = useMemo(() => {
