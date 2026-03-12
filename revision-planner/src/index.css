@@ -261,6 +261,7 @@ header {
   font-weight: 700;
   margin-bottom: 0.5rem;
   background: linear-gradient(135deg, var(--accent-primary), var(--accent-secondary));
+  background-clip: text;
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   text-shadow: 0 0 40px rgba(139, 92, 246, 0.3);
