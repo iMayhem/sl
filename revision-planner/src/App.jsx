@@ -263,6 +263,9 @@ function App() {
   };
   const splitTopics = (topicString) => {
     return topicString
+      .replace(/P-Block[- ]*Group[0-9,\s&]+/gi, 'P-Block')
+      .replace(/D\s*&\s*F[- ]*Block(\s*elements)?/gi, 'd/f block')
+      .replace(/\b(D|F)[- ]*Block(\s*elements)?\b/gi, 'd/f block')
       .replace(/Alcohols,\s*Phenols/gi, 'Alcohols|Phenols')
       .replace(/Aldehydes,\s*Ketones/gi, 'Aldehydes|Ketones')
       .replace(/Work,\s*energy/gi, 'Work|energy')
@@ -279,10 +282,11 @@ function App() {
       scheduleData.forEach(day => {
         if (day && day.tasks) {
           day.tasks.forEach(task => {
+            const subjectKey = normalize(task.subject);
             const expanded = expandTopic(task.topic);
             const chapters = splitTopics(expanded);
             chapters.forEach(c => {
-              const key = normalize(c);
+              const key = `${subjectKey}:${normalize(c)}`;
               freqs[key] = (freqs[key] || 0) + 1;
             });
           });
@@ -292,14 +296,15 @@ function App() {
     return freqs;
   }, [scheduleData]);
 
-  const renderTopicWithFrequency = (topicString) => {
+  const renderTopicWithFrequency = (topicString, subject) => {
     const normalize = (s) => s.trim().toLowerCase().replace(/[\.+]*$/, '');
+    const subjectKey = normalize(subject || '');
     const chapters = splitTopics(topicString);
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
         {chapters.map((c, idx) => {
-          const key = normalize(c);
+          const key = `${subjectKey}:${normalize(c)}`;
           const freq = chapterFrequencies[key] || 1;
           return (
             <span key={idx} style={{ display: 'block', lineHeight: '1.4' }}>
@@ -515,7 +520,7 @@ function App() {
                               <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
                                 {task.subject}
                               </span>
-                              <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic))}</span>
+                              <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic), task.subject)}</span>
                             </div>
                           </div>
                         );
