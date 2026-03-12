@@ -275,13 +275,8 @@ function App() {
   };
   const splitTopics = (topicString) => {
     const parts = topicString
-      .replace(/D\s*&\s*F[- ]*Block(\s*elements)?/gi, 'd/f block')
-      .replace(/\b(D|F)[- ]*Block(\s*elements)?\b/gi, 'd/f block')
-      .replace(/Alcohols,\s*Phenols/gi, 'Alcohols|Phenols')
-      .replace(/Aldehydes,\s*Ketones/gi, 'Aldehydes|Ketones')
-      .replace(/Work,\s*energy/gi, 'Work|energy')
       .split(/[+,]/)
-      .map(s => s.replace(/\|/g, ', ').trim())
+      .map(s => s.trim())
       .filter(Boolean);
     // Deduplicate case-insensitively (keep first occurrence)
     const seen = new Set();
