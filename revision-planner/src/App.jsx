@@ -67,7 +67,12 @@ function App() {
         if (schedErr || !scheduleRows?.schedule_data || scheduleRows.schedule_data.length === 0) {
           setScheduleData(fallbackScheduleData);
         } else {
-          setScheduleData(scheduleRows.schedule_data);
+          // Merge: use DB data as base, then fill in any days from local JSON that are missing
+          const dbData = scheduleRows.schedule_data;
+          const dbDayNumbers = new Set(dbData.map(d => d.day));
+          const missingDays = fallbackScheduleData.filter(d => !dbDayNumbers.has(d.day));
+          const merged = [...dbData, ...missingDays].sort((a, b) => a.day - b.day);
+          setScheduleData(merged);
         }
 
         // Check if Admin
