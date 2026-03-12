@@ -101,9 +101,9 @@ function App() {
     if (savedStartDate) {
       setStartDateStr(savedStartDate);
     } else {
-      // Default to 9th March (the start day in the original prompt logic)
+      // Default to 2nd March
       const currentYear = new Date().getFullYear();
-      setStartDateStr(`${currentYear}-03-09`);
+      setStartDateStr(`${currentYear}-03-02`);
     }
   }, [session]);
 
