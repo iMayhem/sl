@@ -70,27 +70,28 @@ export default function Auth({ onComplete }) {
 
     return (
         <div className="auth-container">
-            <div className="auth-card animate-fade-in" style={{ textAlign: 'center' }}>
-                <div style={{ background: 'rgba(var(--accent-primary-rgb), 0.1)', width: '64px', height: '64px', borderRadius: '1.25rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.5rem' }}>
-                    <Award size={32} color="var(--accent-primary)" />
+            <div className="auth-card animate-fade-in" style={{ textAlign: 'center', padding: '1.75rem' }}>
+                <div style={{ background: 'rgba(var(--accent-primary-rgb), 0.1)', width: '48px', height: '48px', borderRadius: '1rem', display: 'flex', alignItems: 'center', justifyContent: 'center', margin: '0 auto 1.25rem' }}>
+                    <Award size={24} color="var(--accent-primary)" />
                 </div>
-                <h2 className="title-glow" style={{ fontSize: '2rem', marginBottom: '0.75rem' }}>Cloud Sync</h2>
-                <p className="subtitle" style={{ marginBottom: '2rem', fontSize: '0.95rem', lineHeight: '1.5' }}>
-                    Choose a unique username to save your progress permanently in the cloud.
+                <h2 className="title-glow" style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>Cloud Sync</h2>
+                <p className="subtitle" style={{ marginBottom: '1.5rem', fontSize: '0.875rem', lineHeight: '1.4' }}>
+                    Choose a unique username to save your progress permanently.
                 </p>
 
-                {message && <div className="auth-message success">{message}</div>}
-                {errorMsg && <div className="auth-message error">{errorMsg}</div>}
+                {message && <div className="auth-message success" style={{ padding: '0.75rem', fontSize: '0.85rem', marginBottom: '1.25rem' }}>{message}</div>}
+                {errorMsg && <div className="auth-message error" style={{ padding: '0.75rem', fontSize: '0.85rem', marginBottom: '1.25rem' }}>{errorMsg}</div>}
 
                 <form onSubmit={handleAuth} className="auth-form">
-                    <div className="input-group">
-                        <User className="input-icon" size={20} />
+                    <div className="input-group" style={{ marginBottom: '1rem' }}>
+                        <User className="input-icon" size={18} />
                         <input
                             type="text"
-                            placeholder="Enter your name"
+                            placeholder="Enter unique username"
                             value={username}
                             required
                             autoFocus
+                            style={{ padding: '0.75rem 1rem 0.75rem 2.5rem', fontSize: '0.95rem' }}
                             onChange={(e) => setUsername(e.target.value)}
                         />
                     </div>
@@ -98,15 +99,31 @@ export default function Auth({ onComplete }) {
                     <button
                         className="auth-button"
                         disabled={loading}
-                        style={{ marginTop: '0.5rem' }}
+                        style={{ marginTop: '0', padding: '0.875rem' }}
                     >
                         {loading ? (
                             <Loader2 className="animate-spin" size={20} />
                         ) : (
                             <>
-                                Save & Sync progress <ArrowRight size={20} />
+                                Save & Sync <ArrowRight size={18} />
                             </>
                         )}
+                    </button>
+
+                    <button
+                        type="button"
+                        onClick={() => onComplete && onComplete()}
+                        style={{
+                            background: 'transparent',
+                            border: 'none',
+                            color: 'var(--text-secondary)',
+                            fontSize: '0.85rem',
+                            marginTop: '1rem',
+                            cursor: 'pointer',
+                            opacity: 0.7
+                        }}
+                    >
+                        Maybe later
                     </button>
                 </form>
             </div>
