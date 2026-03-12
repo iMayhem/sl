@@ -271,7 +271,7 @@ function App() {
         if (day && day.tasks) {
           day.tasks.forEach(task => {
             const expanded = expandTopic(task.topic);
-            const chapters = expanded.split(',').map(s => s.trim()).filter(Boolean);
+            const chapters = expanded.split(/[+,]/).map(s => s.trim()).filter(Boolean);
             chapters.forEach(c => {
               const key = normalize(c);
               freqs[key] = (freqs[key] || 0) + 1;
@@ -285,14 +285,21 @@ function App() {
 
   const renderTopicWithFrequency = (topicString) => {
     const normalize = (s) => s.trim().toLowerCase().replace(/[\.+]*$/, '');
-    const chapters = topicString.split(',').map(s => s.trim()).filter(Boolean);
-    return chapters.map((c, idx) => {
+    const parts = topicString.split(/([+,])/);
+
+    return parts.map((part, idx) => {
+      if (part === ',' || part === '+') {
+        return <span key={idx} style={{ marginRight: '4px', display: 'inline-block' }}>{part}</span>;
+      }
+
+      const c = part.trim();
+      if (!c) return null;
+
       const key = normalize(c);
       const freq = chapterFrequencies[key] || 1;
       return (
         <span key={idx} style={{ display: 'inline-block', marginRight: '4px' }}>
           {c} <span style={{ opacity: 0.6, fontSize: '0.85em', fontWeight: 500 }}>({freq}x)</span>
-          {idx < chapters.length - 1 ? ',' : ''}
         </span>
       );
     });
