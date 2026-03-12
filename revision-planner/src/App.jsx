@@ -373,7 +373,7 @@ function App() {
             <LogOut size={16} /> Sign Out
           </button>
         </div>
-        <h1 className="title-glow" style={{ marginBottom: '2rem' }}>Selection</h1>
+        <h1 className="title-glow" style={{ marginBottom: '2rem' }}>Selection <span style={{ fontSize: '0.4em', opacity: 0.5 }}>v1.2</span></h1>
       </header>
 
       {showAdmin && isAdmin ? (
