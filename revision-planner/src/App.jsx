@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import { Check, CalendarDays, Award, Clock, Loader2, LogOut } from 'lucide-react';
+import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search } from 'lucide-react';
 import scheduleData from './data/schedule.json';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
@@ -7,9 +7,17 @@ import Auth from './Auth';
 function App() {
   const [session, setSession] = useState(null);
   const [completedTasks, setCompletedTasks] = useState(new Set());
-  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed', 'key'
+  const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
   const [isLoading, setIsLoading] = useState(true);
   const [startDateStr, setStartDateStr] = useState('');
+
+  // Friends Feature States
+  const [viewMode, setViewMode] = useState('me'); // 'me' | 'friend'
+  const [friendSearchQuery, setFriendSearchQuery] = useState('');
+  const [friendProfile, setFriendProfile] = useState(null);
+  const [friendCompletedTasks, setFriendCompletedTasks] = useState(new Set());
+  const [isFriendLoading, setIsFriendLoading] = useState(false);
+  const [friendError, setFriendError] = useState('');
 
   // Handle Authentication setup
   useEffect(() => {
@@ -83,6 +91,7 @@ function App() {
 
   const toggleTask = async (taskId) => {
     if (!session?.user) return;
+    if (viewMode === 'friend') return; // Cannot edit friend's tasks
 
     // Optimistic update
     setCompletedTasks((prev) => {
@@ -136,23 +145,64 @@ function App() {
     return '';
   };
 
+  const activeCompletedTasks = viewMode === 'me' ? completedTasks : friendCompletedTasks;
+
   const stats = useMemo(() => {
     const total = scheduleData.reduce((acc, day) => acc + day.tasks.length, 0);
-    const completed = completedTasks.size;
+    const completed = activeCompletedTasks.size;
     const progress = total === 0 ? 0 : Math.round((completed / total) * 100);
     return { total, completed, progress };
-  }, [completedTasks]);
+  }, [activeCompletedTasks]);
 
   const filteredDays = useMemo(() => {
     return scheduleData.filter((day) => {
-      const dayCompletedTasks = day.tasks.filter(t => completedTasks.has(t.id)).length;
+      const dayCompletedTasks = day.tasks.filter(t => activeCompletedTasks.has(t.id)).length;
       const isDayCompleted = dayCompletedTasks === day.tasks.length;
 
       if (filter === 'completed') return isDayCompleted;
       if (filter === 'active') return !isDayCompleted;
       return true;
     });
-  }, [completedTasks, filter]);
+  }, [activeCompletedTasks, filter]);
+
+  const handleFriendSearch = async (e) => {
+    e.preventDefault();
+    if (!friendSearchQuery.trim()) return;
+
+    setIsFriendLoading(true);
+    setFriendError('');
+    setFriendProfile(null);
+    setFriendCompletedTasks(new Set());
+
+    try {
+      const { data: profileData, error: profileError } = await supabase
+        .from('profiles')
+        .select('id, username')
+        .eq('username', friendSearchQuery.trim().toLowerCase())
+        .single();
+
+      if (profileError || !profileData) {
+        throw new Error('User not found! Make sure you typed the username correctly.');
+      }
+
+      setFriendProfile(profileData);
+
+      const { data: tasksData, error: tasksError } = await supabase
+        .from('completed_tasks')
+        .select('task_id')
+        .eq('user_id', profileData.id);
+
+      if (tasksError) throw tasksError;
+
+      if (tasksData) {
+        setFriendCompletedTasks(new Set(tasksData.map(r => r.task_id)));
+      }
+    } catch (err) {
+      setFriendError(err.message);
+    } finally {
+      setIsFriendLoading(false);
+    }
+  };
 
   const reviseMapping = {
     'REVISE A': 'Reproduction in flowering plants, Biological classification, Plant kingdom, Anatomy of flowering plants, Reproductive health',
@@ -237,79 +287,147 @@ function App() {
 
       <div className="filters">
         <button
-          className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
+          className={`filter-btn ${viewMode === 'me' ? 'active' : ''}`}
+          onClick={() => setViewMode('me')}
         >
-          All Days
+          My Plan
         </button>
         <button
-          className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
-          onClick={() => setFilter('active')}
+          className={`filter-btn ${viewMode === 'friend' ? 'active' : ''}`}
+          onClick={() => setViewMode('friend')}
+          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
         >
-          Active
-        </button>
-        <button
-          className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
-          onClick={() => setFilter('completed')}
-        >
-          Completed
+          <Users size={16} /> Friends
         </button>
       </div>
 
-      <div className="days-grid">
-        {isLoading ? (
-          <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
-            <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
-            <p>Loading your progress...</p>
-          </div>
-        ) : filteredDays.map((day, index) => {
-          const dayCompletedTasks = day.tasks.filter(t => completedTasks.has(t.id)).length;
-          const isDayCompleted = dayCompletedTasks === day.tasks.length;
-
-          return (
-            <div
-              key={day.day}
-              className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
-              style={{ animationDelay: `${(index % 10) * 50}ms` }}
-            >
-              <div className="day-header">
-                <div className="day-title">
-                  {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
-                  Day {day.day}
-                </div>
-                <div className="day-date">
-                  {getDynamicDate(day.day, startDateStr) || day.date}
-                </div>
-              </div>
-
-              <div className="task-list">
-                {day.tasks.map(task => {
-                  const isCompleted = completedTasks.has(task.id);
-                  return (
-                    <div
-                      key={task.id}
-                      className={`task-item ${isCompleted ? 'completed' : ''}`}
-                      onClick={() => toggleTask(task.id)}
-                    >
-                      <div className="checkbox-wrapper">
-                        {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
-                      </div>
-                      <div className="task-content">
-                        <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
-                          {task.subject}
-                        </span>
-                        <span className="task-topic">{expandTopic(task.topic)}</span>
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
+      {viewMode === 'friend' && (
+        <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
+          <form onSubmit={handleFriendSearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+            <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+              <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+              <input
+                type="text"
+                placeholder="Enter friend's username..."
+                value={friendSearchQuery}
+                onChange={(e) => setFriendSearchQuery(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '0.8rem 1rem 0.8rem 2.8rem',
+                  background: 'rgba(0,0,0,0.2)',
+                  border: '1px solid var(--border-color)',
+                  borderRadius: '0.75rem',
+                  color: 'var(--text-primary)',
+                  fontFamily: 'inherit',
+                  fontSize: '1rem'
+                }}
+              />
             </div>
-          );
-        })}
-      </div>
+            <button
+              type="submit"
+              className="auth-button"
+              style={{ marginTop: 0, padding: '0.8rem 1.5rem' }}
+              disabled={isFriendLoading || !friendSearchQuery.trim()}
+            >
+              {isFriendLoading ? <Loader2 className="animate-spin" size={18} /> : 'Search'}
+            </button>
+          </form>
 
-      {!isLoading && filteredDays.length === 0 && (
+          {friendError && (
+            <div className="auth-message error" style={{ marginTop: '1rem', marginBottom: 0 }}>
+              {friendError}
+            </div>
+          )}
+
+          {friendProfile && (
+            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--success-bg)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.75rem', color: '#6ee7b7' }}>
+              Viewing progress for <strong>@{friendProfile.username}</strong>
+            </div>
+          )}
+        </div>
+      )}
+
+      {/* Show Days Filters only if viewing 'me', or if viewing 'friend' and a friend is loaded */}
+      {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
+        <div className="filters">
+          <button
+            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+            onClick={() => setFilter('all')}
+          >
+            All Days
+          </button>
+          <button
+            className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
+            onClick={() => setFilter('active')}
+          >
+            Active
+          </button>
+          <button
+            className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+            onClick={() => setFilter('completed')}
+          >
+            Completed
+          </button>
+        </div>
+      )}
+
+      {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
+        <div className="days-grid">
+          {isLoading ? (
+            <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
+              <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
+              <p>Loading your progress...</p>
+            </div>
+          ) : filteredDays.map((day, index) => {
+            const dayCompletedTasks = day.tasks.filter(t => activeCompletedTasks.has(t.id)).length;
+            const isDayCompleted = dayCompletedTasks === day.tasks.length;
+
+            return (
+              <div
+                key={day.day}
+                className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
+                style={{ animationDelay: `${(index % 10) * 50}ms` }}
+              >
+                <div className="day-header">
+                  <div className="day-title">
+                    {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
+                    Day {day.day}
+                  </div>
+                  <div className="day-date">
+                    {getDynamicDate(day.day, startDateStr) || day.date}
+                  </div>
+                </div>
+
+                <div className="task-list">
+                  {day.tasks.map(task => {
+                    const isCompleted = activeCompletedTasks.has(task.id);
+                    return (
+                      <div
+                        key={task.id}
+                        className={`task-item ${isCompleted ? 'completed' : ''}`}
+                        onClick={() => toggleTask(task.id)}
+                        style={viewMode === 'friend' ? { cursor: 'default' } : {}}
+                      >
+                        <div className="checkbox-wrapper">
+                          {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
+                        </div>
+                        <div className="task-content">
+                          <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
+                            {task.subject}
+                          </span>
+                          <span className="task-topic">{expandTopic(task.topic)}</span>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      )}
+
+      {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && !isLoading && !isFriendLoading && filteredDays.length === 0 && (
         <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
           <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
           <p>No days match your current filter.</p>
