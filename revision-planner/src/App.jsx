@@ -214,8 +214,7 @@ function App() {
             <LogOut size={16} /> Sign Out
           </button>
         </div>
-        <h1 className="title-glow">Selection</h1>
-        <p className="subtitle">53-Day NEET Revision Planner</p>
+        <h1 className="title-glow" style={{ marginBottom: '2rem' }}>Selection</h1>
       </header>
 
       <div className="progress-container">
