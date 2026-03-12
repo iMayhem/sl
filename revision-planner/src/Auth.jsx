@@ -5,7 +5,6 @@ import { User, Lock, Loader2, ArrowRight } from 'lucide-react';
 export default function Auth() {
     const [loading, setLoading] = useState(false);
     const [username, setUsername] = useState('');
-    const [password, setPassword] = useState('');
     const [isSignUp, setIsSignUp] = useState(false);
     const [message, setMessage] = useState('');
     const [errorMsg, setErrorMsg] = useState('');
@@ -20,16 +19,27 @@ export default function Auth() {
         // We append a standard dummy domain to the username.
         const normalizedUsername = username.trim().toLowerCase();
         const fakeEmail = `${normalizedUsername}@example.com`;
+        const dummyPassword = normalizedUsername + '_selection_2026';
 
         try {
             if (isSignUp) {
+                // Check if username already exists in profiles
+                const { data: existingUser } = await supabase
+                    .from('profiles')
+                    .select('username')
+                    .eq('username', normalizedUsername)
+                    .single();
+
+                if (existingUser) {
+                    throw new Error('This username is already taken. Please choose another one.');
+                }
+
                 const { data, error } = await supabase.auth.signUp({
                     email: fakeEmail,
-                    password,
+                    password: dummyPassword,
                 });
                 if (error) throw error;
 
-                // Also insert the username into the completely separate 'profiles' table
                 if (data?.user) {
                     const { error: profileError } = await supabase
                         .from('profiles')
@@ -40,11 +50,11 @@ export default function Auth() {
                     }
                 }
 
-                setMessage('Account created! You have been logged in automatically.');
+                setMessage('Account created! Welcome to Selection.');
             } else {
                 const { error } = await supabase.auth.signInWithPassword({
                     email: fakeEmail,
-                    password,
+                    password: dummyPassword,
                 });
                 if (error) throw error;
             }
@@ -80,18 +90,8 @@ export default function Auth() {
                             placeholder="Your username"
                             value={username}
                             required
+                            autoFocus
                             onChange={(e) => setUsername(e.target.value)}
-                        />
-                    </div>
-                    <div className="input-group">
-                        <Lock className="input-icon" size={20} />
-                        <input
-                            type="password"
-                            placeholder="Your password"
-                            value={password}
-                            required
-                            minLength={6}
-                            onChange={(e) => setPassword(e.target.value)}
                         />
                     </div>
 
@@ -118,7 +118,6 @@ export default function Auth() {
                             setMessage('');
                             setErrorMsg('');
                             setUsername('');
-                            setPassword('');
                         }}
                     >
                         {isSignUp ? 'Already have an account? Log in' : "Don't have an account? Sign up"}
