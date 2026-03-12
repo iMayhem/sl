@@ -261,6 +261,15 @@ function App() {
       });
     return expanded;
   };
+  const splitTopics = (topicString) => {
+    return topicString
+      .replace(/Alcohols,\s*Phenols/gi, 'Alcohols|Phenols')
+      .replace(/Aldehydes,\s*Ketones/gi, 'Aldehydes|Ketones')
+      .replace(/Work,\s*energy/gi, 'Work|energy')
+      .split(/[+,]/)
+      .map(s => s.replace(/\|/g, ', ').trim())
+      .filter(Boolean);
+  };
 
   const chapterFrequencies = useMemo(() => {
     const freqs = {};
@@ -271,7 +280,7 @@ function App() {
         if (day && day.tasks) {
           day.tasks.forEach(task => {
             const expanded = expandTopic(task.topic);
-            const chapters = expanded.split(/[+,]/).map(s => s.trim()).filter(Boolean);
+            const chapters = splitTopics(expanded);
             chapters.forEach(c => {
               const key = normalize(c);
               freqs[key] = (freqs[key] || 0) + 1;
@@ -285,7 +294,7 @@ function App() {
 
   const renderTopicWithFrequency = (topicString) => {
     const normalize = (s) => s.trim().toLowerCase().replace(/[\.+]*$/, '');
-    const chapters = topicString.split(/[+,&]/).map(s => s.trim()).filter(Boolean);
+    const chapters = splitTopics(topicString);
 
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '4px', marginTop: '2px' }}>
