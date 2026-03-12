@@ -250,18 +250,22 @@ function App() {
     if (reviseMapping[topic]) {
       return reviseMapping[topic];
     }
-    // If it contains a revise block, replace it
+    // If it contains a revise block, replace it. Match longest keys first.
     let expanded = topic;
-    Object.keys(reviseMapping).forEach(key => {
-      if (expanded.includes(key)) {
-        expanded = expanded.replace(key, reviseMapping[key]);
-      }
-    });
+    Object.keys(reviseMapping)
+      .sort((a, b) => b.length - a.length)
+      .forEach(key => {
+        if (expanded.includes(key)) {
+          expanded = expanded.replace(key, reviseMapping[key]);
+        }
+      });
     return expanded;
   };
 
   const chapterFrequencies = useMemo(() => {
     const freqs = {};
+    const normalize = (s) => s.trim().toLowerCase().replace(/[\.+]*$/, '');
+
     if (scheduleData && scheduleData.length > 0) {
       scheduleData.forEach(day => {
         if (day && day.tasks) {
@@ -269,7 +273,8 @@ function App() {
             const expanded = expandTopic(task.topic);
             const chapters = expanded.split(',').map(s => s.trim()).filter(Boolean);
             chapters.forEach(c => {
-              freqs[c] = (freqs[c] || 0) + 1;
+              const key = normalize(c);
+              freqs[key] = (freqs[key] || 0) + 1;
             });
           });
         }
@@ -279,9 +284,11 @@ function App() {
   }, [scheduleData]);
 
   const renderTopicWithFrequency = (topicString) => {
+    const normalize = (s) => s.trim().toLowerCase().replace(/[\.+]*$/, '');
     const chapters = topicString.split(',').map(s => s.trim()).filter(Boolean);
     return chapters.map((c, idx) => {
-      const freq = chapterFrequencies[c] || 1;
+      const key = normalize(c);
+      const freq = chapterFrequencies[key] || 1;
       return (
         <span key={idx} style={{ display: 'inline-block', marginRight: '4px' }}>
           {c} <span style={{ opacity: 0.6, fontSize: '0.85em', fontWeight: 500 }}>({freq}x)</span>
