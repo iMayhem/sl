@@ -1,8 +1,9 @@
 import { useState, useEffect, useMemo } from 'react';
 import { Check, CalendarDays, Award, Clock, Loader2, LogOut, Users, Search } from 'lucide-react';
-import scheduleData from './data/schedule.json';
+import fallbackScheduleData from './data/schedule.json';
 import { supabase } from './supabaseClient';
 import Auth from './Auth';
+import Admin from './Admin';
 
 function App() {
   const [session, setSession] = useState(null);
@@ -10,6 +11,11 @@ function App() {
   const [filter, setFilter] = useState('all'); // 'all', 'active', 'completed'
   const [isLoading, setIsLoading] = useState(true);
   const [startDateStr, setStartDateStr] = useState('');
+
+  // Global Schedule State
+  const [scheduleData, setScheduleData] = useState([]);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [showAdmin, setShowAdmin] = useState(false);
 
   // Friends Feature States
   const [viewMode, setViewMode] = useState('me'); // 'me' | 'friend'
@@ -38,28 +44,52 @@ function App() {
   useEffect(() => {
     if (!session?.user) return;
 
-    const fetchCompletedTasks = async () => {
+    const fetchInitialData = async () => {
       setIsLoading(true);
       try {
-        const { data, error } = await supabase
+        // Fetch tasks
+        const { data: tasksData, error: tasksError } = await supabase
           .from('completed_tasks')
           .select('task_id')
           .eq('user_id', session.user.id);
 
-        if (error) throw error;
-
-        if (data) {
-          const taskIds = data.map(row => row.task_id);
-          setCompletedTasks(new Set(taskIds));
+        if (!tasksError && tasksData) {
+          setCompletedTasks(new Set(tasksData.map(row => row.task_id)));
         }
+
+        // Fetch Global Schedule
+        const { data: scheduleRows, error: schedErr } = await supabase
+          .from('global_schedule')
+          .select('schedule_data')
+          .eq('id', 1)
+          .single();
+
+        if (schedErr || !scheduleRows?.schedule_data || scheduleRows.schedule_data.length === 0) {
+          setScheduleData(fallbackScheduleData);
+        } else {
+          setScheduleData(scheduleRows.schedule_data);
+        }
+
+        // Check if Admin
+        const { data: profile } = await supabase
+          .from('profiles')
+          .select('username')
+          .eq('id', session.user.id)
+          .single();
+
+        if (profile?.username === 'sujeet') {
+          setIsAdmin(true);
+        }
+
       } catch (e) {
-        console.error('Error fetching completed tasks:', e);
+        console.error('Error fetching initial data:', e);
+        if (scheduleData.length === 0) setScheduleData(fallbackScheduleData);
       } finally {
         setIsLoading(false);
       }
     };
 
-    fetchCompletedTasks();
+    fetchInitialData();
 
     // Load custom start date if any
     const savedStartDate = localStorage.getItem(`startDate_${session.user.id}`);
@@ -232,17 +262,21 @@ function App() {
 
   const chapterFrequencies = useMemo(() => {
     const freqs = {};
-    scheduleData.forEach(day => {
-      day.tasks.forEach(task => {
-        const expanded = expandTopic(task.topic);
-        const chapters = expanded.split(',').map(s => s.trim()).filter(Boolean);
-        chapters.forEach(c => {
-          freqs[c] = (freqs[c] || 0) + 1;
-        });
+    if (scheduleData && scheduleData.length > 0) {
+      scheduleData.forEach(day => {
+        if (day && day.tasks) {
+          day.tasks.forEach(task => {
+            const expanded = expandTopic(task.topic);
+            const chapters = expanded.split(',').map(s => s.trim()).filter(Boolean);
+            chapters.forEach(c => {
+              freqs[c] = (freqs[c] || 0) + 1;
+            });
+          });
+        }
       });
-    });
+    }
     return freqs;
-  }, []);
+  }, [scheduleData]);
 
   const renderTopicWithFrequency = (topicString) => {
     const chapters = topicString.split(',').map(s => s.trim()).filter(Boolean);
@@ -265,6 +299,15 @@ function App() {
     <div className="app-container">
       <header>
         <div style={{ display: 'flex', justifyContent: 'flex-end', marginBottom: '1rem', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+          {isAdmin && (
+            <button
+              className="filter-btn"
+              style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.5rem 1rem', background: showAdmin ? 'var(--accent-primary)' : '', color: showAdmin ? '#fff' : '' }}
+              onClick={() => setShowAdmin(!showAdmin)}
+            >
+              🛠️ Admin
+            </button>
+          )}
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             <span style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Started:</span>
             <input
@@ -294,171 +337,183 @@ function App() {
         <h1 className="title-glow" style={{ marginBottom: '2rem' }}>Selection</h1>
       </header>
 
-      <div className="progress-container">
-        <div className="progress-header">
-          <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <Award className="text-accent-primary" size={24} color="var(--accent-primary)" />
-            <span style={{ fontSize: '1.1rem', fontWeight: 500 }}>Overall Progress</span>
-          </div>
-          <div className="progress-stats">
-            {stats.completed} / {stats.total} Tasks ({stats.progress}%)
-          </div>
-        </div>
-        <div className="progress-bar-bg">
-          <div
-            className="progress-bar-fill"
-            style={{ width: `${stats.progress}%` }}
-          />
-        </div>
-      </div>
-
-      <div className="filters">
-        <button
-          className={`filter-btn ${viewMode === 'me' ? 'active' : ''}`}
-          onClick={() => setViewMode('me')}
-        >
-          My Plan
-        </button>
-        <button
-          className={`filter-btn ${viewMode === 'friend' ? 'active' : ''}`}
-          onClick={() => setViewMode('friend')}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-        >
-          <Users size={16} /> Friends
-        </button>
-      </div>
-
-      {viewMode === 'friend' && (
-        <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
-          <form onSubmit={handleFriendSearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
-            <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
-              <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
-              <input
-                type="text"
-                placeholder="Enter friend's username..."
-                value={friendSearchQuery}
-                onChange={(e) => setFriendSearchQuery(e.target.value)}
-                style={{
-                  width: '100%',
-                  padding: '0.8rem 1rem 0.8rem 2.8rem',
-                  background: 'rgba(0,0,0,0.2)',
-                  border: '1px solid var(--border-color)',
-                  borderRadius: '0.75rem',
-                  color: 'var(--text-primary)',
-                  fontFamily: 'inherit',
-                  fontSize: '1rem'
-                }}
+      {showAdmin && isAdmin ? (
+        <Admin
+          scheduleData={scheduleData}
+          onSave={(newData) => {
+            setScheduleData(newData);
+            setShowAdmin(false);
+          }}
+        />
+      ) : (
+        <>
+          <div className="progress-container">
+            <div className="progress-header">
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <Award className="text-accent-primary" size={24} color="var(--accent-primary)" />
+                <span style={{ fontSize: '1.1rem', fontWeight: 500 }}>Overall Progress</span>
+              </div>
+              <div className="progress-stats">
+                {stats.completed} / {stats.total} Tasks ({stats.progress}%)
+              </div>
+            </div>
+            <div className="progress-bar-bg">
+              <div
+                className="progress-bar-fill"
+                style={{ width: `${stats.progress}%` }}
               />
             </div>
+          </div>
+
+          <div className="filters">
             <button
-              type="submit"
-              className="auth-button"
-              style={{ marginTop: 0, padding: '0.8rem 1.5rem' }}
-              disabled={isFriendLoading || !friendSearchQuery.trim()}
+              className={`filter-btn ${viewMode === 'me' ? 'active' : ''}`}
+              onClick={() => setViewMode('me')}
             >
-              {isFriendLoading ? <Loader2 className="animate-spin" size={18} /> : 'Search'}
+              My Plan
             </button>
-          </form>
+            <button
+              className={`filter-btn ${viewMode === 'friend' ? 'active' : ''}`}
+              onClick={() => setViewMode('friend')}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Users size={16} /> Friends
+            </button>
+          </div>
 
-          {friendError && (
-            <div className="auth-message error" style={{ marginTop: '1rem', marginBottom: 0 }}>
-              {friendError}
+          {viewMode === 'friend' && (
+            <div style={{ marginBottom: '2rem', padding: '1.5rem', background: 'rgba(255,255,255,0.02)', borderRadius: '1rem', border: '1px solid var(--border-color)' }}>
+              <form onSubmit={handleFriendSearch} style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap' }}>
+                <div style={{ position: 'relative', flex: 1, minWidth: '200px' }}>
+                  <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-secondary)' }} />
+                  <input
+                    type="text"
+                    placeholder="Enter friend's username..."
+                    value={friendSearchQuery}
+                    onChange={(e) => setFriendSearchQuery(e.target.value)}
+                    style={{
+                      width: '100%',
+                      padding: '0.8rem 1rem 0.8rem 2.8rem',
+                      background: 'rgba(0,0,0,0.2)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '0.75rem',
+                      color: 'var(--text-primary)',
+                      fontFamily: 'inherit',
+                      fontSize: '1rem'
+                    }}
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="auth-button"
+                  style={{ marginTop: 0, padding: '0.8rem 1.5rem' }}
+                  disabled={isFriendLoading || !friendSearchQuery.trim()}
+                >
+                  {isFriendLoading ? <Loader2 className="animate-spin" size={18} /> : 'Search'}
+                </button>
+              </form>
+
+              {friendError && (
+                <div className="auth-message error" style={{ marginTop: '1rem', marginBottom: 0 }}>
+                  {friendError}
+                </div>
+              )}
+
+              {friendProfile && (
+                <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--success-bg)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.75rem', color: '#6ee7b7' }}>
+                  Viewing progress for <strong>@{friendProfile.username}</strong>
+                </div>
+              )}
             </div>
           )}
 
-          {friendProfile && (
-            <div style={{ marginTop: '1.5rem', padding: '1rem', background: 'var(--success-bg)', border: '1px solid rgba(16, 185, 129, 0.3)', borderRadius: '0.75rem', color: '#6ee7b7' }}>
-              Viewing progress for <strong>@{friendProfile.username}</strong>
-            </div>
-          )}
-        </div>
-      )}
-
-      {/* Show Days Filters only if viewing 'me', or if viewing 'friend' and a friend is loaded */}
-      {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
-        <div className="filters">
-          <button
-            className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All Days
-          </button>
-          <button
-            className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
-            onClick={() => setFilter('active')}
-          >
-            Active
-          </button>
-          <button
-            className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
-            onClick={() => setFilter('completed')}
-          >
-            Completed
-          </button>
-        </div>
-      )}
-
-      {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
-        <div className="days-grid">
-          {isLoading ? (
-            <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
-              <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
-              <p>Loading your progress...</p>
-            </div>
-          ) : filteredDays.map((day, index) => {
-            const dayCompletedTasks = day.tasks.filter(t => activeCompletedTasks.has(t.id)).length;
-            const isDayCompleted = dayCompletedTasks === day.tasks.length;
-
-            return (
-              <div
-                key={day.day}
-                className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
-                style={{ animationDelay: `${(index % 10) * 50}ms` }}
+          {/* Show Days Filters only if viewing 'me', or if viewing 'friend' and a friend is loaded */}
+          {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
+            <div className="filters">
+              <button
+                className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
+                onClick={() => setFilter('all')}
               >
-                <div className="day-header">
-                  <div className="day-title">
-                    {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
-                    Day {day.day}
-                  </div>
-                  <div className="day-date">
-                    {getDynamicDate(day.day, startDateStr) || day.date}
-                  </div>
-                </div>
+                All Days
+              </button>
+              <button
+                className={`filter-btn ${filter === 'active' ? 'active' : ''}`}
+                onClick={() => setFilter('active')}
+              >
+                Active
+              </button>
+              <button
+                className={`filter-btn ${filter === 'completed' ? 'active' : ''}`}
+                onClick={() => setFilter('completed')}
+              >
+                Completed
+              </button>
+            </div>
+          )}
 
-                <div className="task-list">
-                  {day.tasks.map(task => {
-                    const isCompleted = activeCompletedTasks.has(task.id);
-                    return (
-                      <div
-                        key={task.id}
-                        className={`task-item ${isCompleted ? 'completed' : ''}`}
-                        onClick={() => toggleTask(task.id)}
-                        style={viewMode === 'friend' ? { cursor: 'default' } : {}}
-                      >
-                        <div className="checkbox-wrapper">
-                          {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
-                        </div>
-                        <div className="task-content">
-                          <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
-                            {task.subject}
-                          </span>
-                          <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic))}</span>
-                        </div>
+          {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && (
+            <div className="days-grid">
+              {isLoading ? (
+                <div style={{ padding: '4rem', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', color: 'var(--text-secondary)', gridColumn: '1 / -1' }}>
+                  <Loader2 className="animate-spin" size={48} style={{ marginBottom: '1rem', color: 'var(--accent-primary)' }} />
+                  <p>Loading your progress...</p>
+                </div>
+              ) : filteredDays.map((day, index) => {
+                const dayCompletedTasks = day.tasks.filter(t => activeCompletedTasks.has(t.id)).length;
+                const isDayCompleted = dayCompletedTasks === day.tasks.length;
+
+                return (
+                  <div
+                    key={day.day}
+                    className={`day-card animate-fade-in ${isDayCompleted ? 'completed' : ''}`}
+                    style={{ animationDelay: `${(index % 10) * 50}ms` }}
+                  >
+                    <div className="day-header">
+                      <div className="day-title">
+                        {isDayCompleted ? <Check size={20} color="var(--success)" /> : <CalendarDays size={20} />}
+                        Day {day.day}
                       </div>
-                    );
-                  })}
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      )}
+                      <div className="day-date">
+                        {getDynamicDate(day.day, startDateStr) || day.date}
+                      </div>
+                    </div>
 
-      {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && !isLoading && !isFriendLoading && filteredDays.length === 0 && (
-        <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
-          <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
-          <p>No days match your current filter.</p>
-        </div>
+                    <div className="task-list">
+                      {day.tasks.map(task => {
+                        const isCompleted = activeCompletedTasks.has(task.id);
+                        return (
+                          <div
+                            key={task.id}
+                            className={`task-item ${isCompleted ? 'completed' : ''}`}
+                            onClick={() => toggleTask(task.id)}
+                            style={viewMode === 'friend' ? { cursor: 'default' } : {}}
+                          >
+                            <div className="checkbox-wrapper">
+                              {isCompleted && <Check size={14} color="#fff" strokeWidth={3} />}
+                            </div>
+                            <div className="task-content">
+                              <span className={`subject-badge ${getSubjectClass(task.subject)}`}>
+                                {task.subject}
+                              </span>
+                              <span className="task-topic">{renderTopicWithFrequency(expandTopic(task.topic))}</span>
+                            </div>
+                          </div>
+                        );
+                      })}
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+
+          {(viewMode === 'me' || (viewMode === 'friend' && friendProfile)) && !isLoading && !isFriendLoading && filteredDays.length === 0 && (
+            <div style={{ textAlign: 'center', padding: '4rem', color: 'var(--text-secondary)' }}>
+              <Clock size={48} style={{ margin: '0 auto 1rem', opacity: 0.5 }} />
+              <p>No days match your current filter.</p>
+            </div>
+          )}
+        </>
       )}
     </div>
   );
